@@ -18,12 +18,14 @@
 #define BACKGROUND_LAYER_1          (1)
 
 #define PRECISION_SHIFT             (8)
-#define TO_FIXED_POINT(n)           ((int32_t)(n) << PRECISION_SHIFT)
-#define FROM_FIXED_POINT(n)         ((n) >> PRECISION_SHIFT)
-#define FLOAT_TO_FIXED(n)           ((int32_t)(n * (float)(TO_FIXED_POINT(1))))
+#define FP(n)                       ((int32_t)(n) << PRECISION_SHIFT)
+#define FPTOI(n)                    ((n) >> PRECISION_SHIFT)
+#define FLOAT_TO_FP(n)              ((int32_t)(n * (float)(FP(1))))
 #define STATE_INVALID               (0xFF)
 #define ABS(x)                      (x < 0 ? -x : x)
 #define SGN(x)                      (x < 0 ? -1 : 1)
 #define SGNZ(x)                     (x == 0 ? 0 : SGN(x))
 
+#define PIXELS_TO_CM(x)             ((x) / 90)
+#define CM_TO_PIXELS(x)             ((x) * 90)
 #endif //__DEFS_H__
