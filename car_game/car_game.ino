@@ -6,6 +6,8 @@
 #include "sprites.h"
 #include "env_sprite.h"
 #include "car_sprite.h"
+#include "font.h"
+#include "fontmap.h"
 
 Arduboy app;
 uint8_t         buttons_state;
@@ -26,6 +28,9 @@ void setup() {
     old_buttons_state = 0;
     GetSprite(SPRITE_ENV)->Create(ENV_SPRITE_DATA);
     GetSprite(SPRITE_CAR)->Create(CAR_SPRITE_DATA);
+    GetFont(FONT_MAIN)->Create(FONT_DATA, mapping, nb_map_elems,
+                               MAIN_FONT_SPACE_W, MAIN_FONT_HEIGHT,
+                               default_frame);
     renderer.Initialize(app.getBuffer(), 128);
     renderer.SetClip(0, 0, 128, 64);
     lvl.Initialize();

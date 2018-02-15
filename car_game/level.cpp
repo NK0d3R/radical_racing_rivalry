@@ -1,6 +1,7 @@
 #include "level.h"
 #include "renderer.h"
 #include "sprites.h"
+#include "defs.h"
 
 void Level::Initialize() {
     camera_pos = 0;
@@ -16,6 +17,7 @@ void Level::Initialize() {
 void Level::Render(SpriteRenderer* renderer) {
     DrawLevelBackground(renderer);
     main_car.Draw(renderer);
+    DrawHud(renderer);
 }
 
 int32_t Level::BackgroundLayer::CamPosToOffset(int32_t camera_position) {
@@ -79,6 +81,13 @@ void Level::DrawLevelBackground(SpriteRenderer* renderer) {
     for(int idx = 0; idx < NB_BG_LAYERS; ++ idx) {
         bg_layers[idx]->Draw(renderer, camera_pos);
     }
+}
+
+void Level::DrawHud(SpriteRenderer* renderer) {
+    char tmp[32];
+    sprintf(tmp, "%dRPM", FPTOI(main_car.GetRPM()));
+    GetFont(FONT_MAIN)->DrawString(renderer, tmp, SCREEN_W, 50,
+                                   (ANCHOR_TOP | ANCHOR_RIGHT));
 }
 
 void Level::Update(int16_t dt,

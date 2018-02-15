@@ -1,7 +1,9 @@
 #ifndef __CAR_H__
 #define __CAR_H__
 
+#include "defs.h"
 #include "ardusprite.h"
+#include "sprites.h"
 
 class SpriteRenderer;
 class Level;
@@ -10,7 +12,9 @@ class Car {
         void Initialize(int16_t y);
         void Draw(SpriteRenderer* renderer);
         void Update(int16_t dt);
-        int32_t GetX() { return x_pos; }
+        int32_t GetX()      { return x_pos; }
+        int32_t GetRPM()    { return engine_rpm; }
+        int32_t GetSpeed()  { return speed; }
         void Accelerate(bool on);
     private:
         int32_t x_pos;  //In world coords
@@ -20,8 +24,6 @@ class Car {
         int32_t wheels_rpm;
         int32_t speed;
         int32_t throttle;
-        
-        
         SpriteAnimator reflection;
         SpriteAnimator wheels;
 };

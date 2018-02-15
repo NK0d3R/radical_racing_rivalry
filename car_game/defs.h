@@ -10,9 +10,12 @@
 #define SCREEN_W    128
 #define SCREEN_H    64
 
-#define SPRITE_ENV     (0)
-#define SPRITE_CAR     (1)
-#define NB_SPRITES     (2)
+#define SPRITE_ENV      (0)
+#define SPRITE_CAR      (1)
+#define NB_SPRITES      (2)
+
+#define FONT_MAIN       (0)
+#define NB_FONTS        (1)
 
 #define BACKGROUND_ANIM             (0)
 #define BACKGROUND_SUN_FRM          (0)
@@ -29,5 +32,8 @@
 
 #define PIXELS_TO_CM(x)             ((x) * 10)
 #define CM_TO_PIXELS(x)             ((x) / 10)
+
+#define MAIN_FONT_HEIGHT            (7)
+#define MAIN_FONT_SPACE_W           (4)
 #endif //__DEFS_H__
 

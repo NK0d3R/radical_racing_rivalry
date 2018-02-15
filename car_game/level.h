@@ -1,9 +1,9 @@
 #ifndef __LEVEL_H__
 #define __LEVEL_H__
 
-#include "defs.h"
 #include "ardusprite.h"
 #include "car.h"
+
 class SpriteRenderer;
 class Sprite;
 
@@ -66,6 +66,7 @@ class Level {
 
         BackgroundLayer* bg_layers[NB_BG_LAYERS];
         void DrawLevelBackground(SpriteRenderer* renderer);
+        void DrawHud(SpriteRenderer* renderer);
 };
 
 #endif

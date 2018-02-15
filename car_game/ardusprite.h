@@ -62,8 +62,24 @@ struct Sprite {
     void DrawAnimationFrame(SpriteRenderer* renderer, uint8_t animation,
                             uint8_t frame, int16_t pos_x,
                             int16_t pos_y, uint8_t flags);
-    bool Create(uint8_t* data);
+    int32_t MeasureAnimationFrame(uint8_t animation, uint8_t frame);
+    void Create(const uint8_t* data);
 } __attribute__((__packed__));
+
+struct Font : public Sprite {
+    uint8_t*    mapping;
+    uint8_t     mapping_len;
+    uint8_t     default_frame;
+    uint8_t     space_width;
+    uint8_t     font_height;
+
+    void Create(const uint8_t* data, const uint8_t* map_data, uint8_t map_len, 
+                uint8_t space_w, uint8_t height, uint8_t def_frame);
+    void DrawString(SpriteRenderer* renderer, const char* string,
+                    int16_t pos_x, int16_t pos_y,
+                    uint8_t anchor, int8_t char_spacing = 0);
+    uint16_t GetStringWidth(const char* string, int8_t char_spacing);
+}__attribute__((__packed__));
 
 class SpriteAnimator {
     Sprite*      sprite;
