@@ -1,47 +1,42 @@
 #include "ardusprite.h"
 #include "renderer.h"
 
-bool CreateSprite(Sprite* sprite, uint8_t* data) {
-    sprite->data = data;
-    sprite->flags = pgm_read_byte(data++);
-    sprite->nb_elems = pgm_read_byte(data++);
-    sprite->nb_anims = pgm_read_byte(data++);
+bool Sprite::Create(uint8_t* data) {
+    int total_aframes = 0;
+    int total_felems = 0;
 
-    sprite->elements = (SpriteElement*) data;
-    data += (sprite->nb_elems) * sizeof(SpriteElement);
-    sprite->anims = (SpriteAnim*) data;
-    data += (sprite->nb_anims) * sizeof(SpriteAnim);
+    flags = pgm_read_byte(data++);
+    nb_elems = pgm_read_byte(data++);
+    nb_anims = pgm_read_byte(data++);
 
-    sprite->anim_frames = (SpriteAnimFrame*) data;
+    elements = (SpriteElement*) data;
+    data += (nb_elems) * sizeof(SpriteElement);
+    anims = (SpriteAnim*) data;
 
-    int totalAnimFrames = 0;
-
-    for (int anim = 0; anim < sprite->nb_anims; ++anim) {
+    data += (nb_anims) * sizeof(SpriteAnim);
+    anim_frames = (SpriteAnimFrame*) data;
+    for (int anim = 0; anim < nb_anims; ++anim) {
         SpriteAnim current;
-        memcpy_P(&current, &sprite->anims[anim], sizeof(SpriteAnim));
-        totalAnimFrames += current.nb_frames;
+        memcpy_P(&current, &anims[anim], sizeof(SpriteAnim));
+        total_aframes += current.nb_frames;
     }
 
-    data += totalAnimFrames * sizeof(SpriteAnimFrame);
-
-    sprite->frame_elements = (SpriteFrameElement*) data;
-
-    int totalFrameElems = 0;
-
-    for (int anim = 0; anim < sprite->nb_anims; ++anim) {
+    data += total_aframes * sizeof(SpriteAnimFrame);
+    frame_elements = (SpriteFrameElement*) data;
+    for (int anim = 0; anim < nb_anims; ++anim) {
         SpriteAnim current_anim;
-        memcpy_P(&current_anim, &sprite->anims[anim], sizeof(SpriteAnim));
+        memcpy_P(&current_anim, &anims[anim], sizeof(SpriteAnim));
         for (uint8_t frame = 0; frame < current_anim.nb_frames; ++frame) {
             SpriteAnimFrame current_frame;
             memcpy_P(&current_frame,
-                     &sprite->anim_frames[current_anim.frames_start + frame],
+                     &anim_frames[current_anim.frames_start + frame],
                      sizeof(SpriteAnimFrame));
-            totalFrameElems += current_frame.nb_elems;
+            total_felems += current_frame.nb_elems;
         }
     }
 
-    data += totalFrameElems * sizeof(SpriteFrameElement);
-    sprite->image_data = data;
+    data += total_felems * sizeof(SpriteFrameElement);
+    image_data = data;
     return true;
 }
 
@@ -57,40 +52,40 @@ void Sprite::DrawAnimationFrame(SpriteRenderer* renderer,
                                 uint8_t animation, uint8_t frame,
                                 int16_t pos_x, int16_t pos_y,
                                 uint8_t flags) {
-    SpriteAnim currentAnim;
-    memcpy_P(&currentAnim, &anims[animation], sizeof(SpriteAnim));
+    SpriteAnim current_anim;
+    memcpy_P(&current_anim, &anims[animation], sizeof(SpriteAnim));
 
-    SpriteAnimFrame currentFrame;
-    memcpy_P(&currentFrame,
-             &anim_frames[currentAnim.frames_start + frame],
+    SpriteAnimFrame current_frame;
+    memcpy_P(&current_frame,
+             &anim_frames[current_anim.frames_start + frame],
              sizeof(SpriteAnimFrame));
 
     int16_t elem_pos_x;
     uint8_t elem_flags;
 
-    for(int idx = 0; idx < currentFrame.nb_elems; ++idx) {
-        SpriteFrameElement currentFrameElem;
-        SpriteElement currentElem;
+    for(int idx = 0; idx < current_frame.nb_elems; ++idx) {
+        SpriteFrameElement current_frame_elem;
+        SpriteElement current_elem;
 
-        memcpy_P(&currentFrameElem,
-                 &frame_elements[currentFrame.frame_elems_start + idx],
+        memcpy_P(&current_frame_elem,
+                 &frame_elements[current_frame.frame_elems_start + idx],
                  sizeof(SpriteFrameElement));
 
-        elem_pos_x = (int16_t)currentFrameElem.pos_x;
-        elem_flags = currentFrameElem.flags;
-        memcpy_P(&currentElem, &elements[currentFrameElem.element_idx],
+        elem_pos_x = (int16_t)current_frame_elem.pos_x;
+        elem_flags = current_frame_elem.flags;
+        memcpy_P(&current_elem, &elements[current_frame_elem.element_idx],
                  sizeof(SpriteElement));
 
         if(flags & ARD_FLAGS_FLIP_X) {
-          uint8_t elem_width = currentElem.width;
+          uint8_t elem_width = current_elem.width;
           elem_pos_x = -elem_pos_x - elem_width + 1;
           elem_flags = ( ((~elem_flags) & ARD_FLAGS_FLIP_X) |
                           (elem_flags & (~ARD_FLAGS_FLIP_X)) );
         }
 
-        DrawElement(renderer, currentElem,
+        DrawElement(renderer, current_elem,
                     pos_x + elem_pos_x, pos_y +
-                    (int16_t) currentFrameElem.pos_y,
+                    (int16_t)current_frame_elem.pos_y,
                     elem_flags);
     }
 }

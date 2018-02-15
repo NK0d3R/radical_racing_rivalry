@@ -47,7 +47,6 @@ struct SpriteAnim {
 }__attribute__((__packed__));
 
 struct Sprite {
-    uint8_t*  data;
     uint8_t   flags;
     uint8_t   nb_elems;
     uint8_t   nb_anims;
@@ -63,6 +62,7 @@ struct Sprite {
     void DrawAnimationFrame(SpriteRenderer* renderer, uint8_t animation,
                             uint8_t frame, int16_t pos_x,
                             int16_t pos_y, uint8_t flags);
+    bool Create(uint8_t* data);
 } __attribute__((__packed__));
 
 class SpriteAnimator {
@@ -82,8 +82,6 @@ class SpriteAnimator {
         bool Update(uint16_t dt);
         void Draw(SpriteRenderer* renderer, int16_t pos_x, int16_t pos_y);
 }__attribute__((__packed__));
-
-bool CreateSprite(Sprite* sprite, uint8_t* data);
 
 #endif //__ARDUSPRITE_H__
 

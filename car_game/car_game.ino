@@ -24,8 +24,8 @@ void setup() {
 
     buttons_state = 0;
     old_buttons_state = 0;
-    CreateSprite(GetSprite(SPRITE_ENV), ENV_SPRITE_DATA);
-    CreateSprite(GetSprite(SPRITE_CAR), CAR_SPRITE_DATA);
+    GetSprite(SPRITE_ENV)->Create(ENV_SPRITE_DATA);
+    GetSprite(SPRITE_CAR)->Create(CAR_SPRITE_DATA);
     renderer.Initialize(app.getBuffer(), 128);
     renderer.SetClip(0, 0, 128, 64);
     lvl.Initialize();
