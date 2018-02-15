@@ -28,18 +28,10 @@ class SpriteRenderer
 
         void Initialize(uint8_t* _frame_buffer, uint16_t _frame_stride);
         void SetClip(int16_t x, int16_t y, int16_t w, int16_t h);
-
-        void DrawElement(Sprite* sprite, const SpriteElement& element,
-                         int16_t pos_x, int16_t pos_y, uint8_t flags);
-        void DrawAnimationFrame(Sprite* sprite, uint8_t animation,
-                                uint8_t frame, int16_t pos_x,
-                                int16_t pos_y, uint8_t flags);
         void DrawLine(const Line& line);
         void PutPixel(const Vector& point);
         void PutPixelClip(const Vector& point);
         void ClipLineX(Line& line);
-
-      private:
         void DrawSpriteData(uint8_t* sprite_data, int16_t target_x,
                             int16_t target_y, uint8_t width,
                             uint8_t height, uint8_t flags);

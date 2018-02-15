@@ -57,55 +57,6 @@ void SpriteRenderer::SetClip(int16_t x, int16_t y, int16_t w, int16_t h) {
     clip.Set(x, y, w, h);
 }
 
-void SpriteRenderer::DrawElement(Sprite* sprite, const SpriteElement& element, 
-                                 int16_t pos_x, int16_t pos_y, uint8_t flags) {
-    flags |= (sprite->flags << 4);
-    DrawSpriteData(sprite->image_data + element.image_offset,
-                   pos_x, pos_y, element.width, element.height, flags);
-}
-
-void SpriteRenderer::DrawAnimationFrame(Sprite* sprite, 
-                                        uint8_t animation, uint8_t frame, 
-                                        int16_t pos_x, int16_t pos_y,
-                                        uint8_t flags) {
-    SpriteAnim currentAnim;
-    memcpy_P(&currentAnim, &sprite->anims[animation], sizeof(SpriteAnim));
-
-    SpriteAnimFrame currentFrame;
-    memcpy_P(&currentFrame,
-             &sprite->anim_frames[currentAnim.frames_start + frame],
-             sizeof(SpriteAnimFrame));
-
-    int16_t elem_pos_x;
-    uint8_t elem_flags;
-
-    for(int idx = 0; idx < currentFrame.nb_elems; ++idx) {
-        SpriteFrameElement currentFrameElem;
-        SpriteElement currentElem;
-
-        memcpy_P(&currentFrameElem,
-                 &sprite->frame_elements[currentFrame.frame_elems_start + idx],
-                 sizeof(SpriteFrameElement));
-
-        elem_pos_x = (int16_t)currentFrameElem.pos_x;
-        elem_flags = currentFrameElem.flags;
-        memcpy_P(&currentElem, &sprite->elements[currentFrameElem.element_idx],
-                 sizeof(SpriteElement));
-
-        if(flags & ARD_FLAGS_FLIP_X) {
-          uint8_t elem_width = currentElem.width;
-          elem_pos_x = -elem_pos_x - elem_width + 1;
-          elem_flags = ( ((~elem_flags) & ARD_FLAGS_FLIP_X) |
-                          (elem_flags & (~ARD_FLAGS_FLIP_X)) );
-        }
-
-        DrawElement(sprite, currentElem,
-                    pos_x + elem_pos_x, pos_y +
-                    (int16_t) currentFrameElem.pos_y,
-                    elem_flags);
-    }
-}
-
 void SpriteRenderer::PutPixel(const Vector& point) {
     uint16_t dest_row_byte = point.x + (point.y >> 3) * frame_stride;
     uint8_t dest_bit = (point.y & 7);

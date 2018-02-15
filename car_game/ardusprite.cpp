@@ -3,9 +3,9 @@
 
 bool CreateSprite(Sprite* sprite, uint8_t* data) {
     sprite->data = data;
-    sprite->flags = *data++;
-    sprite->nb_elems = *data++;
-    sprite->nb_anims = *data++;
+    sprite->flags = pgm_read_byte(data++);
+    sprite->nb_elems = pgm_read_byte(data++);
+    sprite->nb_anims = pgm_read_byte(data++);
 
     sprite->elements = (SpriteElement*) data;
     data += (sprite->nb_elems) * sizeof(SpriteElement);
@@ -42,9 +42,59 @@ bool CreateSprite(Sprite* sprite, uint8_t* data) {
 
     data += totalFrameElems * sizeof(SpriteFrameElement);
     sprite->image_data = data;
-
     return true;
 }
+
+void Sprite::DrawElement(SpriteRenderer* renderer, const SpriteElement& element,
+                         int16_t pos_x, int16_t pos_y, uint8_t elem_flags) {
+    elem_flags |= (flags << 4);
+    renderer->DrawSpriteData(image_data + element.image_offset,
+                             pos_x, pos_y, element.width,
+                             element.height, elem_flags);
+}
+
+void Sprite::DrawAnimationFrame(SpriteRenderer* renderer,
+                                uint8_t animation, uint8_t frame,
+                                int16_t pos_x, int16_t pos_y,
+                                uint8_t flags) {
+    SpriteAnim currentAnim;
+    memcpy_P(&currentAnim, &anims[animation], sizeof(SpriteAnim));
+
+    SpriteAnimFrame currentFrame;
+    memcpy_P(&currentFrame,
+             &anim_frames[currentAnim.frames_start + frame],
+             sizeof(SpriteAnimFrame));
+
+    int16_t elem_pos_x;
+    uint8_t elem_flags;
+
+    for(int idx = 0; idx < currentFrame.nb_elems; ++idx) {
+        SpriteFrameElement currentFrameElem;
+        SpriteElement currentElem;
+
+        memcpy_P(&currentFrameElem,
+                 &frame_elements[currentFrame.frame_elems_start + idx],
+                 sizeof(SpriteFrameElement));
+
+        elem_pos_x = (int16_t)currentFrameElem.pos_x;
+        elem_flags = currentFrameElem.flags;
+        memcpy_P(&currentElem, &elements[currentFrameElem.element_idx],
+                 sizeof(SpriteElement));
+
+        if(flags & ARD_FLAGS_FLIP_X) {
+          uint8_t elem_width = currentElem.width;
+          elem_pos_x = -elem_pos_x - elem_width + 1;
+          elem_flags = ( ((~elem_flags) & ARD_FLAGS_FLIP_X) |
+                          (elem_flags & (~ARD_FLAGS_FLIP_X)) );
+        }
+
+        DrawElement(renderer, currentElem,
+                    pos_x + elem_pos_x, pos_y +
+                    (int16_t) currentFrameElem.pos_y,
+                    elem_flags);
+    }
+}
+
 
 void SpriteAnimator::Init(Sprite* animated_sprite) {
     sprite = animated_sprite;
@@ -103,7 +153,8 @@ bool SpriteAnimator::Update(uint16_t dt)
 void SpriteAnimator::Draw(SpriteRenderer* renderer,
                           int16_t pos_x, int16_t pos_y)
 {
-    renderer->DrawAnimationFrame(sprite, current_anim, 
-                                 current_anim_frame, pos_x, pos_y,
-                                 current_anim_flags);
+    sprite->DrawAnimationFrame(renderer, current_anim,
+                               current_anim_frame, pos_x, pos_y,
+                               current_anim_flags);
 }
+

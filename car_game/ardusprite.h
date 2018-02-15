@@ -1,23 +1,25 @@
-#ifndef __ARDUSprite_H__
-#define __ARDUSprite_H__
+#ifndef __ARDUSPRITE_H__
+#define __ARDUSPRITE_H__
 
 #include "defs.h"
 
 #define INVALID_ANIM  (0xFF)
 #define INVALID_FRAME (0xFF)
 
-#define ANCHOR_LEFT   (1)
+#define ANCHOR_LEFT     (1)
 #define ANCHOR_HCENTER  (1<<1)
-#define ANCHOR_RIGHT  (1<<2)
-#define ANCHOR_TOP    (1<<3)
+#define ANCHOR_RIGHT    (1<<2)
+#define ANCHOR_TOP      (1<<3)
 #define ANCHOR_VCENTER  (1<<4)
-#define ANCHOR_BOTTOM (1<<5)
+#define ANCHOR_BOTTOM   (1<<5)
 
 #define ARD_FLAGS_FLIP_X    (1)
 #define ARD_FLAGS_FLIP_Y    (2)
 
 #define GET_W_FROM_SIZE(sz) (uint16_t)(sz & 0xFFFF)
 #define GET_H_FROM_SIZE(sz) (uint16_t)((sz & 0xFFFF0000) >> 16)
+
+class SpriteRenderer;
 
 struct SpriteElement {
     uint8_t     width;
@@ -55,9 +57,13 @@ struct Sprite {
     SpriteAnim* anims;
     SpriteAnimFrame* anim_frames;
     SpriteFrameElement* frame_elements;
-} __attribute__((__packed__));
 
-class SpriteRenderer;
+    void DrawElement(SpriteRenderer* renderer, const SpriteElement& element,
+                     int16_t pos_x, int16_t pos_y, uint8_t elem_flags);
+    void DrawAnimationFrame(SpriteRenderer* renderer, uint8_t animation,
+                            uint8_t frame, int16_t pos_x,
+                            int16_t pos_y, uint8_t flags);
+} __attribute__((__packed__));
 
 class SpriteAnimator {
     Sprite*      sprite;
@@ -79,4 +85,5 @@ class SpriteAnimator {
 
 bool CreateSprite(Sprite* sprite, uint8_t* data);
 
-#endif //__ARDUSprite_H__
+#endif //__ARDUSPRITE_H__
+
