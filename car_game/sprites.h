@@ -6,3 +6,4 @@ class Sprite;
 Sprite* GetSprite(int8_t idx);
 
 #endif
+

@@ -2,17 +2,23 @@
 #define __LEVEL_H__
 
 #include "defs.h"
-
+#include "ardusprite.h"
+#include "car.h"
 class SpriteRenderer;
 class Sprite;
 
 #define NB_BG_LAYERS    (4)
 
+Level& GetLevel();
+
 class Level {
     public:
         void Initialize();
         void Render(SpriteRenderer* renderer);
-        void Update();
+        void Update(int16_t dt,
+                    uint8_t buttons_state, uint8_t old_buttons_state);
+        int32_t WorldToScreen(int32_t pos);
+        void UpdateCamera();
         ~Level();
     private:
         class BackgroundLayer{
@@ -56,8 +62,11 @@ class Level {
                                   int32_t camera_position);
         };
         int32_t camera_pos;
+        Car main_car;
+
         BackgroundLayer* bg_layers[NB_BG_LAYERS];
         void DrawLevelBackground(SpriteRenderer* renderer);
 };
 
 #endif
+

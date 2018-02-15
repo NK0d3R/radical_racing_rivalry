@@ -11,7 +11,8 @@
 #define SCREEN_H    64
 
 #define SPRITE_ENV     (0)
-#define NB_SPRITES     (1)
+#define SPRITE_CAR     (1)
+#define NB_SPRITES     (2)
 
 #define BACKGROUND_ANIM             (0)
 #define BACKGROUND_SUN_FRM          (0)
@@ -26,6 +27,7 @@
 #define SGN(x)                      (x < 0 ? -1 : 1)
 #define SGNZ(x)                     (x == 0 ? 0 : SGN(x))
 
-#define PIXELS_TO_CM(x)             ((x) / 90)
-#define CM_TO_PIXELS(x)             ((x) * 90)
+#define PIXELS_TO_CM(x)             ((x) * 10)
+#define CM_TO_PIXELS(x)             ((x) / 10)
 #endif //__DEFS_H__
+

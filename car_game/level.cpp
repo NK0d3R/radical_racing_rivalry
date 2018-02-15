@@ -6,14 +6,16 @@ void Level::Initialize() {
     camera_pos = 0;
     bg_layers[0] = new BackgroundSprite(25, 0, BACKGROUND_SUN_FRM, 0);
     bg_layers[1] = new BackgroundSprite(23, 190, BACKGROUND_LAYER_1,
-                                        FLOAT_TO_FP(0.1));
+                                        FLOAT_TO_FP(0.05));
     bg_layers[2] = new BackgroundSprite(25, 190, BACKGROUND_LAYER_1,
-                                        FLOAT_TO_FP(1.0));
-    bg_layers[3] = new BackgroundGrid(25, 40, 15, FLOAT_TO_FP(1.10));
+                                        FLOAT_TO_FP(0.075));
+    bg_layers[3] = new BackgroundGrid(25, 40, 15, FLOAT_TO_FP(0.075));
+    main_car.Initialize(60);
 }
 
 void Level::Render(SpriteRenderer* renderer) {
     DrawLevelBackground(renderer);
+    main_car.Draw(renderer);
 }
 
 int32_t Level::BackgroundLayer::CamPosToOffset(int32_t camera_position) {
@@ -50,8 +52,8 @@ void Level::BackgroundGrid::Draw(SpriteRenderer* renderer,
     crt_y = y_bot;
     renderer->DrawLine(Line(0, crt_y, SCREEN_W - 1, crt_y));
 
-    for(int16_t idx = 1; idx >= 0; idx --) {
-        crt_y = ((y_top + crt_y) >> 1) - idx;
+    for(int16_t idx = 2; idx > 0; idx --) {
+        crt_y = ((y_top + crt_y) >> 1);
         renderer->DrawLine(Line(0, crt_y, SCREEN_W - 1, crt_y));
     }
 }
@@ -61,17 +63,15 @@ void Level::BackgroundSprite::Draw(SpriteRenderer* renderer,
     int32_t offset = (SCREEN_W / 2);
     if(offset_ratio != 0) {
         offset -= (CamPosToOffset(camera_position) % width);
+        GetSprite(SPRITE_ENV)->DrawAnimationFrame(renderer,
+                                          BACKGROUND_ANIM,
+                                          frame, offset + width,
+                                          y_pos, 0);
     }
-    renderer->DrawAnimationFrame(GetSprite(SPRITE_ENV),
-                                 BACKGROUND_ANIM,
-                                 frame, offset, y_pos,
-                                 0);
-    if(offset_ratio != 0) {
-          renderer->DrawAnimationFrame(GetSprite(SPRITE_ENV),
-                                 BACKGROUND_ANIM,
-                                 frame, offset + width, y_pos,
-                                 0);
-    }
+    GetSprite(SPRITE_ENV)->DrawAnimationFrame(renderer,
+                                              BACKGROUND_ANIM,
+                                              frame, offset, y_pos,
+                                              0);
 }
 
 
@@ -81,8 +81,19 @@ void Level::DrawLevelBackground(SpriteRenderer* renderer) {
     }
 }
 
-void Level::Update() {
-    camera_pos += 1;
+void Level::Update(int16_t dt,
+                   uint8_t buttons_state, uint8_t old_buttons_state) {
+    main_car.Accelerate(buttons_state & A_BUTTON);
+    main_car.Update(dt);
+    UpdateCamera();
+}
+
+int32_t Level::WorldToScreen(int32_t pos) {
+    return (SCREEN_W / 2) + FPTOI(CM_TO_PIXELS(pos - camera_pos)) - 20;
+}
+
+void Level::UpdateCamera() {
+    camera_pos = ((camera_pos + (main_car.GetX()<<2)) / 5);
 }
 
 Level::~Level() {
