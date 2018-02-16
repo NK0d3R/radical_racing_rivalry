@@ -23,6 +23,7 @@ const int32_t torque[] PROGMEM = {
 #define NB_TORQUES  (sizeof(torque)/sizeof(int16_t))
 
 const int32_t gear_ratios[] PROGMEM = {
+    0,
     FLOAT_TO_FP(9.13f),
     FLOAT_TO_FP(6.65f),
     FLOAT_TO_FP(4.45f),
@@ -34,12 +35,16 @@ const int32_t gear_ratios[] PROGMEM = {
 #define WHEEL_RADIUS           FLOAT_TO_FP(0.33f)
 #define VEHICLE_MASS           FP(1800)
 
-#define WIND_RESISTANCE        -FLOAT_TO_FP(0.02)
-#define CONSTANT_RESISTANCE    -FP(150)
+#define WIND_RESISTANCE_MULT   -15
+#define WIND_RESISTANCE_DIV    100
+#define CONSTANT_RESISTANCE    -FP(500)
+#define MAX_GEAR               (sizeof(gear_ratios)/sizeof(int32_t))
 
 int32_t RPM2Torque(int32_t rpm) {
     if(rpm < 1000) {
         return pgm_read_dword(&torque[0]);
+    } else if(rpm > 8000) {
+        return -FP(rpm) / 10;
     }
     int32_t idx = (rpm / 1000) - 1;
     int32_t torque_start = pgm_read_dword(&torque[idx]);
@@ -75,6 +80,18 @@ void Car::Initialize(int16_t y) {
     reflection.SetAnimation(REFLECTION_ANIM, 0, true);
 }
 
+void Car::ShiftGear(bool up = true) {
+    if(up == true) {
+        if(gear < MAX_GEAR) {
+            gear ++;
+        }
+    } else {
+        if(gear > 0) {
+            gear --;
+        }
+    }
+}
+
 void Car::Draw(SpriteRenderer* renderer) {
     int32_t x = GetLevel().WorldToScreen(x_pos);
     GetSprite(SPRITE_CAR)->DrawAnimationFrame(renderer, BODY_ANIM,
@@ -84,55 +101,45 @@ void Car::Draw(SpriteRenderer* renderer) {
     reflection.Draw(renderer, x, y_pos);
 }
 
-void Car::Accelerate(bool on) {
+void Car::PedalToTheMetal(bool on) {
     if(on) {
         if(throttle < FP(1)) {
             throttle += FLOAT_TO_FP(0.1);
-
-            if(throttle > FP(1)) {
-                throttle = FP(1);
-            }
+            CLAMP_UPPER(throttle, FP(1));
         }
     } else {
         if(throttle > 0) {
             throttle -= FLOAT_TO_FP(0.1);
-
-            if(throttle < 0) {
-                throttle = 0;
-            }
+            CLAMP_LOWER(throttle, 0);
         }
     }
 }
 
-void Car::Update(int16_t dt) {
-    int32_t wheel_speed = FP(speed) / (100 * WHEEL_CIRCUMFERENCE / 60);
-    engine_rpm = FPTOI(GetGearRatio(0) * wheel_speed);
-    if(FPTOI(engine_rpm) > 8000)
-    {
-        engine_rpm = FP(8000);
-    }
+void Car::UpdateEngine(int16_t dt) {
+    wheels_rpm = (FP(speed) * 60) / WHEEL_CIRCUMFERENCE;
+    engine_rpm = FPTOI(GetGearRatio(gear) * wheels_rpm);
     int32_t engine_torque = RPM2Torque(FPTOI(engine_rpm));
     int32_t forward_force = (throttle *
-                             FPTOI(engine_torque * GetGearRatio(0))) /
+                             FPTOI(engine_torque * GetGearRatio(gear))) /
                              WHEEL_RADIUS;
-    forward_force += CONSTANT_RESISTANCE;
+    forward_force += CONSTANT_RESISTANCE +
+                     FPTOI((WIND_RESISTANCE_MULT * speed * speed) /
+                     WIND_RESISTANCE_DIV);
     int32_t accel = FP(forward_force) / VEHICLE_MASS;
-    /*static int val = 1;
-    if(val % 15 == 0)
-    {
-        Serial.println(wheel_speed);
-        Serial.println(FPTOI(engine_rpm));
-        Serial.println(engine_torque);
-        Serial.println(forward_force);
-        Serial.println(accel);
-    }
-    val ++;*/
-    speed += (accel * dt) / 10;
-    if(speed < 0) {
-        speed = 0;
-    }
+    speed += FPTOI((accel * FP(dt)) / 1000);
+    CLAMP_LOWER(speed, 0);
     x_pos += FPTOI((speed * FP(dt)) / 1000);
-    wheels.Update(dt);
+}
+
+void Car::UpdateWheelsAnim(int16_t dt) {
+    int16_t newdt = FPTOI((dt * wheels_rpm) / 125);
+    CLAMP_UPPER(newdt, 200);
+    wheels.Update(newdt);
+}
+
+void Car::Update(int16_t dt) {
+    UpdateEngine(dt);
+    UpdateWheelsAnim(dt);
     reflection.Update((dt >> 1));
 }
 

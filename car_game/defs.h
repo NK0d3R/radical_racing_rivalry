@@ -29,9 +29,12 @@
 #define ABS(x)                      (x < 0 ? -x : x)
 #define SGN(x)                      (x < 0 ? -1 : 1)
 #define SGNZ(x)                     (x == 0 ? 0 : SGN(x))
+#define CLAMP_LOWER(x, limit)       (x = (x < limit) ? limit : x)
+#define CLAMP_UPPER(x, limit)       (x = (x > limit) ? limit : x)
+#define MPS_TO_KPH(x)               ((x * 36) / 10)
 
-#define PIXELS_TO_CM(x)             ((x) * 10)
-#define CM_TO_PIXELS(x)             ((x) / 10)
+#define PIXELS_TO_M(x)              ((x) * 10)
+#define M_TO_PIXELS(x)              ((x) / 10)
 
 #define MAIN_FONT_HEIGHT            (7)
 #define MAIN_FONT_SPACE_W           (4)

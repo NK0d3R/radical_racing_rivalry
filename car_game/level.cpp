@@ -7,10 +7,10 @@ void Level::Initialize() {
     camera_pos = 0;
     bg_layers[0] = new BackgroundSprite(25, 0, BACKGROUND_SUN_FRM, 0);
     bg_layers[1] = new BackgroundSprite(23, 190, BACKGROUND_LAYER_1,
-                                        FLOAT_TO_FP(0.05));
+                                        25);
     bg_layers[2] = new BackgroundSprite(25, 190, BACKGROUND_LAYER_1,
-                                        FLOAT_TO_FP(0.075));
-    bg_layers[3] = new BackgroundGrid(25, 40, 15, FLOAT_TO_FP(0.075));
+                                        100);
+    bg_layers[3] = new BackgroundGrid(25, 40, 15, 135);
     main_car.Initialize(60);
 }
 
@@ -21,7 +21,7 @@ void Level::Render(SpriteRenderer* renderer) {
 }
 
 int32_t Level::BackgroundLayer::CamPosToOffset(int32_t camera_position) {
-    return FPTOI(FPTOI(CM_TO_PIXELS(camera_position) * offset_ratio));
+    return FPTOI(M_TO_PIXELS((camera_position * offset_factor) / 10));
 }
 
 void Level::BackgroundGrid::DrawSingleLine(SpriteRenderer* renderer,
@@ -63,7 +63,7 @@ void Level::BackgroundGrid::Draw(SpriteRenderer* renderer,
 void Level::BackgroundSprite::Draw(SpriteRenderer* renderer,
                                    int32_t camera_position) {
     int32_t offset = (SCREEN_W / 2);
-    if(offset_ratio != 0) {
+    if(offset_factor != 0) {
         offset -= (CamPosToOffset(camera_position) % width);
         GetSprite(SPRITE_ENV)->DrawAnimationFrame(renderer,
                                           BACKGROUND_ANIM,
@@ -85,20 +85,34 @@ void Level::DrawLevelBackground(SpriteRenderer* renderer) {
 
 void Level::DrawHud(SpriteRenderer* renderer) {
     char tmp[32];
+    sprintf(tmp, "Gear:%d", main_car.GetGear());
+    GetFont(FONT_MAIN)->DrawString(renderer, tmp, SCREEN_W, 45,
+                                   (ANCHOR_BOTTOM | ANCHOR_RIGHT));
     sprintf(tmp, "%dRPM", FPTOI(main_car.GetRPM()));
-    GetFont(FONT_MAIN)->DrawString(renderer, tmp, SCREEN_W, 50,
-                                   (ANCHOR_TOP | ANCHOR_RIGHT));
+    GetFont(FONT_MAIN)->DrawString(renderer, tmp, SCREEN_W, 55,
+                                   (ANCHOR_BOTTOM | ANCHOR_RIGHT));
+    sprintf(tmp, "%dKPH", FPTOI(MPS_TO_KPH(main_car.GetSpeed())));
+    GetFont(FONT_MAIN)->DrawString(renderer, tmp, SCREEN_W, 64,
+                                   (ANCHOR_BOTTOM | ANCHOR_RIGHT));
 }
 
 void Level::Update(int16_t dt,
                    uint8_t buttons_state, uint8_t old_buttons_state) {
-    main_car.Accelerate(buttons_state & A_BUTTON);
+    uint8_t changed_buttons = ((buttons_state ^ old_buttons_state) &
+                               buttons_state);
+    if((changed_buttons & UP_BUTTON) == 0) {
+        main_car.ShiftGear(true);
+    }
+    if((changed_buttons & DOWN_BUTTON) == 0) {
+        main_car.ShiftGear(false);
+    }
+    main_car.PedalToTheMetal(buttons_state & A_BUTTON);
     main_car.Update(dt);
     UpdateCamera();
 }
 
 int32_t Level::WorldToScreen(int32_t pos) {
-    return (SCREEN_W / 2) + FPTOI(CM_TO_PIXELS(pos - camera_pos)) - 20;
+    return (SCREEN_W / 2) + FPTOI(M_TO_PIXELS(pos - camera_pos)) - 20;
 }
 
 void Level::UpdateCamera() {

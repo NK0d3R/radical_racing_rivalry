@@ -13,9 +13,12 @@ class Car {
         void Draw(SpriteRenderer* renderer);
         void Update(int16_t dt);
         int32_t GetX()      { return x_pos; }
-        int32_t GetRPM()    { return engine_rpm; }
+        int32_t GetRPM()    { return wheels_rpm; }
         int32_t GetSpeed()  { return speed; }
-        void Accelerate(bool on);
+        int8_t  GetGear()   { return gear; }
+        void ShiftGear(bool up = true);
+        void PedalToTheMetal(bool on);
+
     private:
         int32_t x_pos;  //In world coords
         int16_t y_pos;  //In screen coords
@@ -26,6 +29,8 @@ class Car {
         int32_t throttle;
         SpriteAnimator reflection;
         SpriteAnimator wheels;
+        void UpdateEngine(int16_t dt);
+        void UpdateWheelsAnim(int16_t dt);
 };
 
 #endif

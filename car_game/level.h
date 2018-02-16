@@ -23,12 +23,12 @@ class Level {
     private:
         class BackgroundLayer{
             public:
-                BackgroundLayer(int32_t ratio) : offset_ratio(ratio) {
+                BackgroundLayer(int16_t factor) : offset_factor(factor) {
                 }
                 virtual void Draw(SpriteRenderer* renderer,
                                   int32_t cameraPosition) = 0;
             protected:
-                int32_t offset_ratio;
+                int16_t offset_factor;
                 int32_t CamPosToOffset(int32_t camera_position);
         };
 
@@ -40,8 +40,8 @@ class Level {
                                 int16_t y_top, int16_t y_bot);
             public:
                 BackgroundGrid(int16_t _y_top, int16_t _y_bot,
-                               int16_t _density, int32_t ratio) :
-                               BackgroundLayer(ratio), y_top(_y_top),
+                               int16_t _density, int16_t factor) :
+                               BackgroundLayer(factor), y_top(_y_top),
                                y_bot(_y_bot), density(_density) {
                 }
                 virtual void Draw(SpriteRenderer* renderer,
@@ -54,8 +54,8 @@ class Level {
             int16_t frame;
             public:
                 BackgroundSprite(int16_t y, int16_t width,
-                                 int16_t frame, int32_t ratio) :
-                                 BackgroundLayer(ratio), y_pos(y),
+                                 int16_t frame, int16_t factor) :
+                                 BackgroundLayer(factor), y_pos(y),
                                  width(width), frame(frame) {
                  }
                 virtual void Draw(SpriteRenderer* renderer,
