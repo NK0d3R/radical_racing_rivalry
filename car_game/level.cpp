@@ -96,17 +96,22 @@ void Level::DrawHud(SpriteRenderer* renderer) {
                                    (ANCHOR_BOTTOM | ANCHOR_RIGHT));
 }
 
+void Level::UpdateControls(uint8_t buttons_state, uint8_t old_buttons_state) {
+    uint8_t just_changed_buttons = (buttons_state ^ old_buttons_state);
+    main_car.PedalToTheMetal(buttons_state & A_BUTTON);
+    main_car.Clutch(buttons_state & B_BUTTON);
+    if(main_car.IsClutched()){
+        if((just_changed_buttons & buttons_state & UP_BUTTON)) {
+            main_car.ShiftGear(true);
+        }
+        if((just_changed_buttons & buttons_state & DOWN_BUTTON)) {
+            main_car.ShiftGear(false);
+        }
+    }
+}
 void Level::Update(int16_t dt,
                    uint8_t buttons_state, uint8_t old_buttons_state) {
-    uint8_t changed_buttons = ((buttons_state ^ old_buttons_state) &
-                               buttons_state);
-    if((changed_buttons & UP_BUTTON) == 0) {
-        main_car.ShiftGear(true);
-    }
-    if((changed_buttons & DOWN_BUTTON) == 0) {
-        main_car.ShiftGear(false);
-    }
-    main_car.PedalToTheMetal(buttons_state & A_BUTTON);
+    UpdateControls(buttons_state, old_buttons_state);
     main_car.Update(dt);
     UpdateCamera();
 }

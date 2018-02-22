@@ -17,6 +17,7 @@ class Level {
         void Render(SpriteRenderer* renderer);
         void Update(int16_t dt,
                     uint8_t buttons_state, uint8_t old_buttons_state);
+        void UpdateControls(uint8_t buttons_state, uint8_t old_buttons_state);
         int32_t WorldToScreen(int32_t pos);
         void UpdateCamera();
         ~Level();
