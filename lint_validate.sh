@@ -8,7 +8,7 @@ for filename in $PROJECT_FOLDER/*; do
         echo "$filename was updated, checking"
         while :
         do
-            python $GOOGLE_LINT --root=$PROJECT_FOLDER $filename
+            python $GOOGLE_LINT --repository="$PROJECT_FOLDER" $filename
             if [ $? == 0 ]; then
                 echo File is OK !
                 break

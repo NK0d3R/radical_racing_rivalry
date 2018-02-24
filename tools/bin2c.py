@@ -13,6 +13,8 @@ def main():
                         type=int, default=16, required=False)
     parser.add_argument("-t", "--tabs", help="Tab size in spaces",
                         type=int, default=4, required=False)
+    parser.add_argument("-c", "--copyright", help="Copyright file",
+                        default="", required=False)
     options = parser.parse_args()
 
     buffer_size = 2048
@@ -34,7 +36,10 @@ def main():
 
     with open(options.input, "rb") as input:
         with open(options.output, "wt") as output:
-            output.write("#ifndef __%s_H__\n#define __%s_H__\n\n" %
+            if options.copyright != "":
+                with open(options.copyright, "rt") as copyright:
+                    output.write(copyright.read())
+            output.write("#ifndef %s_H_\n#define %s_H_\n\n" %
                          (variable_name_base, variable_name_base))
             output.write("#define %s%s%d\n" % (
                          variable_name_size, tab_str, file_size))
@@ -42,24 +47,23 @@ def main():
                          (variable_name_data, tab_str))
 
             crt_line_byte = 0
-            new_line_finish = True
             while True:
                 chunk = input.read(buffer_size)
                 if chunk:
                     new_line_finish = False
-                    for byte in chunk:
+                    for idx, byte in enumerate(chunk):
                         output.write("%s,"%
                                      format(ord(byte), "#04x"))
                         crt_line_byte += 1
                         if crt_line_byte == options.maxvals:
                             output.write("\n%s" % (tab_str))
                             crt_line_byte = 0
-                            new_line_finish = True
+                        else:
+                            if idx < len(chunk) - 1:
+                                output.write(" ")
                 else:
                     break
-                if new_line_finish is False:
-                    output.write("\n")
-                output.write("\n};\n\n#endif //__%s_H__\n" %
+                output.write("\n};\n\n#endif  // %s_H_\n" %
                              (variable_name_base))
 
 if __name__ == "__main__":

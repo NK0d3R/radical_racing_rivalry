@@ -11,6 +11,10 @@ def main():
                         help="File containing font mapping definition")
     parser.add_argument("-o", "--output", action="store",
                         required=True, help="Output file")
+    parser.add_argument("-t", "--tabs", help="Tab size in spaces",
+                        type=int, default=4, required=False)
+    parser.add_argument("-c", "--copyright", help="Copyright file",
+                        default="", required=False)
     parse_data = parser.parse_args()
     data_lines = None
     with open(parse_data.input, 'r') as input:
@@ -20,6 +24,7 @@ def main():
         sys.exit(255)
     default_mapping = -1
     max_char = -1
+    tab_str = " " * parse_data.tabs
     mapping = {}
 
     for index, line in enumerate(data_lines):
@@ -45,7 +50,10 @@ def main():
     variable_name_base = basename.upper().replace(" ", "_").replace(".","_")
 
     with open(parse_data.output, 'w') as output:
-        output.write("#ifndef __%s_H__\n#define __%s_H__\n\n" %
+        if parse_data.copyright != "":
+            with open(parse_data.copyright, "rt") as copyright:
+                output.write(copyright.read())
+        output.write("#ifndef %s_H_\n#define %s_H_\n\n" %
                      (variable_name_base, variable_name_base))
         output.write("uint8_t nb_map_elems = %d;\n" % (max_char + 1))
         output.write("uint8_t default_frame = %d;\n" % (default_mapping))
@@ -54,20 +62,20 @@ def main():
             stop = False
             outstr = ""
             if char in mapping:
+                outstr = "%s%d" % (tab_str, mapping[char])
                 if char == max_char:
-                    outstr = " %d" % (mapping[char])
                     stop = True
                 else:
-                    outstr = " %d," % (mapping[char])
+                    outstr += ","
             else:
-                outstr = " %d," % (default_mapping)
+                outstr = "%s%d," % (tab_str, default_mapping)
             crt_char = chr(char)
             if crt_char.isspace() is False and crt_char in string.printable:
-                outstr += "    /* '%c\' */" % (crt_char)
+                outstr += "%s/* '%c\' */" % (tab_str, crt_char)
             outstr += "\n"
             output.write(outstr)
             if stop:
                 break
-        output.write("};\n\n#endif //__%s_H__\n" % (variable_name_base))
+        output.write("};\n\n#endif  // %s_H_\n" % (variable_name_base))
 if __name__=="__main__":
     main()
