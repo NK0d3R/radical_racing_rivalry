@@ -1,7 +1,9 @@
-#ifndef __ARDUSPRITE_H__
-#define __ARDUSPRITE_H__
+// Copyright 2018 Catalin G. Manciu
 
-#include "defs.h"
+#ifndef ARDUSPRITE_H_
+#define ARDUSPRITE_H_
+
+#include "stdinc.h"
 
 #define INVALID_ANIM  (0xFF)
 #define INVALID_FRAME (0xFF)
@@ -24,80 +26,79 @@ class SpriteRenderer;
 struct SpriteElement {
     uint8_t     width;
     uint8_t     height;
-    uint16_t    image_offset;
+    uint16_t    imageOffset;
 } __attribute__((__packed__));
 
 struct SpriteFrameElement {
-    uint8_t     element_idx;
+    uint8_t     elementIdx;
     uint8_t     flags;
-    int8_t      pos_x;
-    int8_t      pos_y;
+    int8_t      posX;
+    int8_t      posY;
 } __attribute__((__packed__));
 
 struct SpriteAnimFrame {
     uint8_t   duration;
-    uint8_t   nb_elems;
-    
-    uint16_t  frame_elems_start;
+    uint8_t   elemsNb;
+    uint16_t  frameElemsStart;
 }__attribute__((__packed__));
 
 struct SpriteAnim {
-    uint8_t   nb_frames;
-    uint16_t  frames_start;
+    uint8_t   framesNb;
+    uint16_t  framesStart;
 }__attribute__((__packed__));
 
 struct Sprite {
     uint8_t   flags;
-    uint8_t   nb_elems;
-    uint8_t   nb_anims;
-    uint8_t*  image_data;
-    
-    SpriteElement* elements;
-    SpriteAnim* anims;
-    SpriteAnimFrame* anim_frames;
-    SpriteFrameElement* frame_elements;
+    uint8_t   elemsNb;
+    uint8_t   animsNb;
+    const uint8_t*  imageData;
 
-    void DrawElement(SpriteRenderer* renderer, const SpriteElement& element,
-                     int16_t pos_x, int16_t pos_y, uint8_t elem_flags);
-    void DrawAnimationFrame(SpriteRenderer* renderer, uint8_t animation,
-                            uint8_t frame, int16_t pos_x,
-                            int16_t pos_y, uint8_t flags);
-    int32_t MeasureAnimationFrame(uint8_t animation, uint8_t frame);
-    void Create(const uint8_t* data);
+    const SpriteElement* elements;
+    const SpriteAnim* anims;
+    const SpriteAnimFrame* animFrames;
+    const SpriteFrameElement* frameElems;
+
+    void drawElement(SpriteRenderer* renderer, const SpriteElement& element,
+                     int16_t posX, int16_t posY, uint8_t elemFlags);
+    void drawAnimationFrame(SpriteRenderer* renderer, uint8_t animation,
+                            uint8_t frame, int16_t posX,
+                            int16_t posY, uint8_t flags);
+    int32_t measureAnimationFrame(uint8_t animation, uint8_t frame);
+    void create(const uint8_t* data);
 } __attribute__((__packed__));
 
 struct Font : public Sprite {
-    uint8_t*    mapping;
-    uint8_t     mapping_len;
-    uint8_t     default_frame;
-    uint8_t     space_width;
-    uint8_t     font_height;
+    const uint8_t*    mapping;
+    uint8_t     mappingLen;
+    uint8_t     defaultFrame;
+    uint8_t     spaceWidth;
+    uint8_t     fontHeight;
 
-    void Create(const uint8_t* data, const uint8_t* map_data, uint8_t map_len, 
-                uint8_t space_w, uint8_t height, uint8_t def_frame);
-    void DrawString(SpriteRenderer* renderer, const char* string,
-                    int16_t pos_x, int16_t pos_y,
-                    uint8_t anchor, int8_t char_spacing = 0);
-    uint16_t GetStringWidth(const char* string, int8_t char_spacing);
+    void create(const uint8_t* data, const uint8_t* mapData, uint8_t mapLen,
+                uint8_t spaceW, uint8_t height, uint8_t defFrame);
+    void drawString(SpriteRenderer* renderer, const char* string,
+                    int16_t posX, int16_t posY,
+                    uint8_t anchor, int8_t charSpacing = 0);
+    uint16_t getStringWidth(const char* string, int8_t charSpacing);
 }__attribute__((__packed__));
 
 class SpriteAnimator {
     Sprite*      sprite;
-    uint16_t     current_frame_time;
-    
-    bool         loop_anim;
-    bool         is_playing;
-    
-    uint8_t      current_anim;
-    uint8_t      current_anim_frame;
-    uint8_t      current_anim_flags;
+    uint16_t     currentFrameTime;
 
-    public:
-        void Init(Sprite* animated_sprite);
-        void SetAnimation(uint8_t animation, uint8_t flags, bool loop);
-        bool Update(uint16_t dt);
-        void Draw(SpriteRenderer* renderer, int16_t pos_x, int16_t pos_y);
+    bool         loopAnim;
+    bool         isPlaying;
+
+    uint8_t      currentAnim;
+    uint8_t      currentAnimFrame;
+    uint8_t      currentAnimFlags;
+
+ public:
+    void init(Sprite* animSprite);
+    void setAnimation(uint8_t animation, uint8_t flags, bool loop);
+    bool update(uint16_t dt);
+    void draw(SpriteRenderer* renderer, int16_t posX, int16_t posY);
 }__attribute__((__packed__));
 
-#endif //__ARDUSPRITE_H__
+#endif  // ARDUSPRITE_H_
 

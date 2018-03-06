@@ -1,11 +1,14 @@
-#ifndef __DEFS_H__
-#define __DEFS_H__
+// Copyright 2018 Catalin G. Manciu
 
-#include <Arduboy.h>
-#include <avr/pgmspace.h>
-#include <stdint.h>
-#include <stdbool.h>
-#include <stddef.h>
+#ifndef DEFS_H_
+#define DEFS_H_
+
+#include "primitives.h"
+#include "fixedpoint.h"
+
+typedef FPValue<int32_t, 8> FP32;
+typedef VectorT<FP32> Vector;
+typedef LineT<FP32> Line;
 
 #define SCREEN_W    128
 #define SCREEN_H    64
@@ -22,9 +25,6 @@
 #define BACKGROUND_LAYER_1          (1)
 
 #define PRECISION_SHIFT             (8)
-#define FP(n)                       ((int32_t)(n) << PRECISION_SHIFT)
-#define FPTOI(n)                    ((n) >> PRECISION_SHIFT)
-#define FLOAT_TO_FP(n)              ((int32_t)(n * (float)(FP(1))))
 #define STATE_INVALID               (0xFF)
 #define ABS(x)                      (x < 0 ? -x : x)
 #define SGN(x)                      (x < 0 ? -1 : 1)
@@ -38,5 +38,12 @@
 
 #define MAIN_FONT_HEIGHT            (7)
 #define MAIN_FONT_SPACE_W           (4)
-#endif //__DEFS_H__
+
+struct Defs {
+    static const FP32 FP_SCR_W;
+    static const FP32 FP_HALF_SCR_W;
+    static const FP32 FP_SCR_H;
+    static const FP32 FP_HALF_SCR_H;
+};
+#endif  // DEFS_H__
 

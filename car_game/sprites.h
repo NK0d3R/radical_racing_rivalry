@@ -1,6 +1,9 @@
-#ifndef __SPRITES_H__
-#define __SPRITES_H__
-#include "defs.h"
+// Copyright 2018 Catalin G. Manciu
+
+#ifndef SPRITES_H_
+#define SPRITES_H_
+
+#include "stdinc.h"
 
 class Sprite;
 class Font;
@@ -8,5 +11,5 @@ class Font;
 Sprite* GetSprite(int8_t idx);
 Font* GetFont(int8_t idx);
 
-#endif
+#endif  // SPRITES_H_
 

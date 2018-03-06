@@ -1,7 +1,8 @@
-#include "renderer.h"
-#include "defs.h"
+// Copyright 2018 Catalin G. Manciu
 
-const uint8_t left_masks[] = {
+#include "renderer.h"
+
+const uint8_t s_leftMasks[] = {
     0xff,
     0xfe,
     0xfc,
@@ -12,7 +13,7 @@ const uint8_t left_masks[] = {
     0x80
 };
 
-const uint8_t bit_reverse[] = {
+const uint8_t s_bitReverse[] = {
     0x00, 0x80, 0x40, 0xC0, 0x20, 0xA0, 0x60, 0xE0,
     0x10, 0x90, 0x50, 0xD0, 0x30, 0xB0, 0x70, 0xF0,
     0x08, 0x88, 0x48, 0xC8, 0x28, 0xA8, 0x68, 0xE8,
@@ -47,227 +48,191 @@ const uint8_t bit_reverse[] = {
     0x1F, 0x9F, 0x5F, 0xDF, 0x3F, 0xBF, 0x7F, 0xFF
 };
 
-void SpriteRenderer::Initialize(uint8_t* _frame_buffer,
-                                uint16_t _frame_stride) {
-    frame_buffer = _frame_buffer;
-    frame_stride = _frame_stride;
+void SpriteRenderer::initialize(uint8_t* fb, uint16_t fs) {
+    frameBuffer = fb;
+    frameStride = fs;
 }
 
-void SpriteRenderer::SetClip(int16_t x, int16_t y, int16_t w, int16_t h) {
-    clip.Set(x, y, w, h);
+void SpriteRenderer::setClip(int16_t x, int16_t y, int16_t w, int16_t h) {
+    clip.set(x, y, w, h);
 }
 
-void SpriteRenderer::PutPixel(const Vector& point) {
-    uint16_t dest_row_byte = point.x + (point.y >> 3) * frame_stride;
-    uint8_t dest_bit = (point.y & 7);
-    frame_buffer[dest_row_byte] |= (1 << dest_bit);
+void SpriteRenderer::putPixel(int16_t x, int16_t y) {
+    uint16_t destRowByte = x + (y >> 3) * frameStride;
+    uint8_t destBit = (y & 7);
+    frameBuffer[destRowByte] |= (1 << destBit);
 }
 
-void SpriteRenderer::PutPixelClip(const Vector& point) {
-    if(clip.IsInside(point)) {
-        PutPixel(point);
-    }
-}
+void SpriteRenderer::drawSpriteData(uint8_t* spriteData, int16_t targetX,
+                                    int16_t targetY, uint8_t width,
+                                    uint8_t height, uint8_t flags) {
+    Rect dataBounds(targetX, targetY, width, height);
 
-void SpriteRenderer::DrawSpriteData(uint8_t* sprite_data, int16_t target_x,
-                                        int16_t target_y, uint8_t width,
-                                        uint8_t height, uint8_t flags) {
-    Rect data_bounds(target_x, target_y, width, height);
+    dataBounds.clip(clip);
 
-    data_bounds.Clip(clip);
-
-    if(data_bounds.IsEmpty()) {
+    if (dataBounds.isEmpty()) {
         return;
     }
 
-    int16_t src_x = data_bounds.x - target_x;
-    int16_t src_y = data_bounds.y - target_y;
+    int16_t srcX = dataBounds.x - targetX;
+    int16_t srcY = dataBounds.y - targetY;
 
-    if(src_x < 0 || src_y < 0) {
+    if (srcX < 0 || srcY < 0) {
         return;
     }
 
-    DrawSpriteData1Bit(sprite_data, src_x, src_y,
-                       data_bounds.x, data_bounds.y,
-                       data_bounds.w, data_bounds.h,
-                       width, height, flags);
+    drawSpriteData1Bit(spriteData, srcX, srcY, dataBounds.x, dataBounds.y,
+                       dataBounds.w, dataBounds.h, width, height, flags);
 }
 
-void SpriteRenderer::DrawSpriteData1Bit(uint8_t* sprite_data, uint8_t src_x,
-                                        uint8_t src_y, uint8_t target_x,
-                                        uint8_t target_y, int8_t width, 
-                                        int8_t height, uint8_t initial_width,
-                                        uint8_t initial_height, uint8_t flags) {
-    bool x_flipped = (flags & ARD_FLAGS_FLIP_X);
-    bool y_flipped = (flags & ARD_FLAGS_FLIP_Y);
-    
-    uint16_t sprite_data_stride = (initial_width << 1);    
-    uint16_t dest_row_start_byte = target_x + (target_y >> 3) * frame_stride;
+void SpriteRenderer::drawSpriteData1Bit(uint8_t* spriteData, uint8_t srcX,
+                                        uint8_t srcY, uint8_t targetX,
+                                        uint8_t targetY, int8_t width,
+                                        int8_t height, uint8_t initialWidth,
+                                        uint8_t initialHeight, uint8_t flags) {
+    bool xFlipped = (flags & ARD_FLAGS_FLIP_X);
+    bool yFlipped = (flags & ARD_FLAGS_FLIP_Y);
 
-    uint8_t dest_bit = (target_y & 7);
+    uint16_t spriteDataStride = (initialWidth << 1);
+    uint16_t destRowStartByte = targetX + ((targetY >> 3) * frameStride);
 
-    uint8_t current_pix;
-    uint8_t current_mask;
+    uint8_t destBit = (targetY & 7);
 
-    uint16_t src_row_start_byte;
-    uint8_t  src_bit;
-    int16_t  src_row_incr;
+    uint8_t currentPix;
+    uint8_t currentMask;
 
-    uint16_t dest_offset;
+    uint16_t srcRowStartByte;
+    uint8_t  srcBit;
+    int16_t  srcRowIncr;
 
-    uint8_t to_shift;
-    bool shift_left;
+    uint16_t destOffset;
 
-    uint8_t pix_written;
+    uint8_t toShift;
+    bool shiftLeft;
 
-    int8_t x_offset = 0;
-    int8_t x_offset_start = 0;
-    int8_t x_offset_inc = 2;
-    int8_t cols_to_write;
+    uint8_t pixWritten;
 
-    if(y_flipped == false)
-    {
-        src_row_start_byte = (src_y >> 3) * sprite_data_stride;
-        src_row_incr = sprite_data_stride;
-        src_bit = (src_y & 7);
-    }
-    else 
-    {
-        src_row_start_byte = (((initial_height - src_y - 1) >> 3) *
-                              sprite_data_stride);
-        src_row_incr = -sprite_data_stride;
-        
-        src_y = initial_height - src_y - 1;
-        src_bit = 7 - (src_y & 7);
+    int8_t xOffset = 0;
+    int8_t xOffsetStart = 0;
+    int8_t xOffsetInc = 2;
+    int8_t colsToWrite;
+
+    if (yFlipped == false) {
+        srcRowStartByte = (srcY >> 3) * spriteDataStride;
+        srcRowIncr = spriteDataStride;
+        srcBit = (srcY & 7);
+    } else {
+        srcRowStartByte = (((initialHeight - srcY - 1) >> 3) *
+                              spriteDataStride);
+        srcRowIncr = -spriteDataStride;
+        srcY = initialHeight - srcY - 1;
+        srcBit = 7 - (srcY & 7);
     }
 
-    if(x_flipped == true)
-    {
-        x_offset_start = ((width - 1) << 1);
-        x_offset_inc = -2;
-
-        if(src_x == 0)
-        {
-            src_row_start_byte += ((initial_width - width) << 1);
-        }
-    }
-    else
-    {
-        src_row_start_byte += (src_x << 1);
-    }
-
-    memcpy_P(line_buffer, sprite_data + src_row_start_byte, (width << 1));
-
-    while(height > 0)
-    {           
-        if(src_bit == dest_bit) 
-        {
-            to_shift = 0;
-            pix_written = (8 - src_bit);
-        }
-        else if(src_bit < dest_bit) 
-        {
-            to_shift = dest_bit - src_bit;
-            shift_left = true;
-            pix_written = (8 - dest_bit);
-        } 
-        else 
-        {
-            to_shift = src_bit - dest_bit;
-            shift_left = false;
-            pix_written = (8 - src_bit);
-        }
-
-        dest_offset = dest_row_start_byte;
-
-        for(x_offset = x_offset_start, cols_to_write = width;
-            cols_to_write > 0; -- cols_to_write, x_offset += x_offset_inc) 
-        {
-            current_pix = line_buffer[x_offset];
-            current_mask = line_buffer[x_offset + 1];
-
-            if(y_flipped != 0) 
-            {
-                current_pix = bit_reverse[current_pix];
-                current_mask = bit_reverse[current_mask];  
-            }
-            
-            current_mask &= left_masks[src_bit];
-            
-            if(to_shift != 0)
-            {
-                if(shift_left)
-                {
-                    current_mask <<= to_shift;
-                    current_pix <<= to_shift;
-                }
-                else
-                {
-                    current_mask >>= to_shift;
-                    current_pix >>= to_shift;
-                }
-            }
-
-            frame_buffer[dest_offset] = ((current_pix & current_mask) |
-                                         (frame_buffer[dest_offset] &
-                                          ~current_mask));
-            dest_offset ++;
-        }
-
-        height -= pix_written;
-        src_bit += pix_written;
-        dest_bit += pix_written;
-
-        if(src_bit > 7)
-        {
-            src_bit = 0;
-            src_row_start_byte += src_row_incr;
-            memcpy_P(line_buffer, sprite_data + src_row_start_byte,
-                     (width << 1));
-        }
-
-        if(dest_bit > 7)
-        {
-            dest_bit = 0;
-            dest_row_start_byte += frame_stride;
-        }   
-    }
-}
-
-void SpriteRenderer::DrawLine(const Line& line)
-{
-    Vector  diff = line.end - line.start;
-    int32_t abs_x = ABS(diff.x);
-    int32_t abs_y = ABS(diff.y);
-    int32_t increment_x = SGNZ(diff.x);
-    int32_t increment_y = SGNZ(diff.y);
-
-    if(abs_x > abs_y) {
-        int32_t d = (abs_y << 1) - abs_x;
-        int32_t y = line.start.y;           
-        for(int32_t x = line.start.x; x != line.end.x; x += increment_x) {
-            PutPixel({x, y});
-            if(d > 0) {
-                y += increment_y;
-                d -= (abs_x << 1);
-            }
-            d += (abs_y << 1);
+    if (xFlipped == true) {
+        xOffsetStart = ((width - 1) << 1);
+        xOffsetInc = -2;
+        if (srcX == 0) {
+            srcRowStartByte += ((initialWidth - width) << 1);
         }
     } else {
-        int32_t d = (abs_x << 1) - abs_y;
-        int32_t x = line.start.x;           
-        for(int32_t y = line.start.y; y != line.end.y; y += increment_y) {
-            PutPixel({x, y});
-            if(d > 0) {
-                x += increment_x;
-                d -= (abs_y << 1);
+        srcRowStartByte += (srcX << 1);
+    }
+
+    memcpy_P(lineBuffer, spriteData + srcRowStartByte, (width << 1));
+
+    while (height > 0) {
+        if (srcBit == destBit) {
+            toShift = 0;
+            pixWritten = (8 - srcBit);
+        } else if (srcBit < destBit) {
+            toShift = destBit - srcBit;
+            shiftLeft = true;
+            pixWritten = (8 - destBit);
+        } else {
+            toShift = srcBit - destBit;
+            shiftLeft = false;
+            pixWritten = (8 - srcBit);
+        }
+
+        destOffset = destRowStartByte;
+
+        for (xOffset = xOffsetStart, colsToWrite = width;
+            colsToWrite > 0; --colsToWrite, xOffset += xOffsetInc) {
+            currentPix = lineBuffer[xOffset];
+            currentMask = lineBuffer[xOffset + 1];
+            if (yFlipped != 0) {
+                currentPix = s_bitReverse[currentPix];
+                currentMask = s_bitReverse[currentMask];
             }
-            d += (abs_x << 1);
+            currentMask &= s_leftMasks[srcBit];
+            if (toShift != 0) {
+                if (shiftLeft) {
+                    currentMask <<= toShift;
+                    currentPix <<= toShift;
+                } else {
+                    currentMask >>= toShift;
+                    currentPix >>= toShift;
+                }
+            }
+
+            frameBuffer[destOffset] = ((currentPix & currentMask) |
+                                       (frameBuffer[destOffset] &
+                                        ~currentMask));
+            destOffset++;
+        }
+        height -= pixWritten;
+        srcBit += pixWritten;
+        destBit += pixWritten;
+
+        if (srcBit > 7) {
+            srcBit = 0;
+            srcRowStartByte += srcRowIncr;
+            memcpy_P(lineBuffer, spriteData + srcRowStartByte, (width << 1));
+        }
+        if (destBit > 7) {
+            destBit = 0;
+            destRowStartByte += frameStride;
         }
     }
 }
 
-void SpriteRenderer::ClipLineX(Line& line) {
-    clip.ClipLineX(line);
-}
+void SpriteRenderer::drawLine(int16_t xStart, int16_t yStart,
+                              int16_t xEnd, int16_t yEnd) {
+    int32_t xDiff = xEnd - xStart;
+    int32_t yDiff = yEnd - yStart;
+    int32_t absX = ABS(xDiff);
+    int32_t absY = ABS(yDiff);
+    int32_t incrementX = SGNZ(xDiff);
+    int32_t incrementY = SGNZ(yDiff);
 
+    if (absX > absY) {
+        int32_t d = (absY << 1) - absX;
+        int32_t y = yStart;
+        for (int32_t x = xStart;; x += incrementX) {
+            putPixel(x, y);
+            if (x == xEnd) {
+                return;
+            }
+            if (d > 0) {
+                y += incrementY;
+                d -= (absX << 1);
+            }
+            d += (absY << 1);
+        }
+    } else {
+        int32_t d = (absX << 1) - absY;
+        int32_t x = xStart;
+        for (int32_t y = yStart;; y += incrementY) {
+            putPixel(x, y);
+            if (y == yEnd) {
+                return;
+            }
+            if (d > 0) {
+                x += incrementX;
+                d -= (absY << 1);
+            }
+            d += (absX << 1);
+        }
+    }
+}

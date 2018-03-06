@@ -1,270 +1,259 @@
+// Copyright 2018 Catalin G. Manciu
+
 #include "ardusprite.h"
 #include "renderer.h"
 
-void Sprite::Create(const uint8_t* data) {
-    int total_aframes = 0;
-    int total_felems = 0;
+void Sprite::create(const uint8_t* data) {
+    int totalAnimFrames = 0;
+    int totalFrameElems = 0;
 
     flags = pgm_read_byte(data++);
-    nb_elems = pgm_read_byte(data++);
-    nb_anims = pgm_read_byte(data++);
+    elemsNb = pgm_read_byte(data++);
+    animsNb = pgm_read_byte(data++);
 
-    elements = (SpriteElement*) data;
-    data += (nb_elems) * sizeof(SpriteElement);
-    anims = (SpriteAnim*) data;
+    elements = reinterpret_cast<const SpriteElement*>(data);
+    data += (elemsNb) * sizeof(SpriteElement);
+    anims = reinterpret_cast<const SpriteAnim*>(data);
 
-    data += (nb_anims) * sizeof(SpriteAnim);
-    anim_frames = (SpriteAnimFrame*) data;
-    for (int anim = 0; anim < nb_anims; ++anim) {
+    data += (animsNb) * sizeof(SpriteAnim);
+    animFrames = reinterpret_cast<const SpriteAnimFrame*>(data);
+    for (int anim = 0; anim < animsNb; ++anim) {
         SpriteAnim current;
         memcpy_P(&current, &anims[anim], sizeof(SpriteAnim));
-        total_aframes += current.nb_frames;
+        totalAnimFrames += current.framesNb;
     }
 
-    data += total_aframes * sizeof(SpriteAnimFrame);
-    frame_elements = (SpriteFrameElement*) data;
-    for (int anim = 0; anim < nb_anims; ++anim) {
-        SpriteAnim current_anim;
-        memcpy_P(&current_anim, &anims[anim], sizeof(SpriteAnim));
-        for (uint8_t frame = 0; frame < current_anim.nb_frames; ++frame) {
-            SpriteAnimFrame current_frame;
-            memcpy_P(&current_frame,
-                     &anim_frames[current_anim.frames_start + frame],
+    data += totalAnimFrames * sizeof(SpriteAnimFrame);
+    frameElems = reinterpret_cast<const SpriteFrameElement*>(data);
+    for (int anim = 0; anim < animsNb; ++anim) {
+        SpriteAnim currentAnim;
+        memcpy_P(&currentAnim, &anims[anim], sizeof(SpriteAnim));
+        for (uint8_t frame = 0; frame < currentAnim.framesNb; ++frame) {
+            SpriteAnimFrame currentFrame;
+            memcpy_P(&currentFrame,
+                     &animFrames[currentAnim.framesStart + frame],
                      sizeof(SpriteAnimFrame));
-            total_felems += current_frame.nb_elems;
+            totalFrameElems += currentFrame.elemsNb;
         }
     }
 
-    data += total_felems * sizeof(SpriteFrameElement);
-    image_data = data;
+    data += totalFrameElems * sizeof(SpriteFrameElement);
+    imageData = data;
 }
 
-void Sprite::DrawElement(SpriteRenderer* renderer, const SpriteElement& element,
-                         int16_t pos_x, int16_t pos_y, uint8_t elem_flags) {
-    elem_flags |= (flags << 4);
-    renderer->DrawSpriteData(image_data + element.image_offset,
-                             pos_x, pos_y, element.width,
-                             element.height, elem_flags);
+void Sprite::drawElement(SpriteRenderer* renderer, const SpriteElement& element,
+                         int16_t posX, int16_t posY, uint8_t elemFlags) {
+    elemFlags |= (flags << 4);
+    renderer->drawSpriteData(imageData + element.imageOffset,
+                             posX, posY, element.width,
+                             element.height, elemFlags);
 }
 
-void Sprite::DrawAnimationFrame(SpriteRenderer* renderer,
+void Sprite::drawAnimationFrame(SpriteRenderer* renderer,
                                 uint8_t animation, uint8_t frame,
-                                int16_t pos_x, int16_t pos_y,
+                                int16_t posX, int16_t posY,
                                 uint8_t flags) {
-    SpriteAnim current_anim;
-    memcpy_P(&current_anim, &anims[animation], sizeof(SpriteAnim));
+    SpriteAnim currentAnim;
+    memcpy_P(&currentAnim, &anims[animation], sizeof(SpriteAnim));
 
-    SpriteAnimFrame current_frame;
-    memcpy_P(&current_frame,
-             &anim_frames[current_anim.frames_start + frame],
+    SpriteAnimFrame currentFrame;
+    memcpy_P(&currentFrame,
+             &animFrames[currentAnim.framesStart + frame],
              sizeof(SpriteAnimFrame));
 
     int16_t elem_pos_x;
-    uint8_t elem_flags;
+    uint8_t elemFlags;
 
-    for(int idx = 0; idx < current_frame.nb_elems; ++idx) {
-        SpriteFrameElement current_frame_elem;
-        SpriteElement current_elem;
+    for (int idx = 0; idx < currentFrame.elemsNb; ++idx) {
+        SpriteFrameElement currentFrameElem;
+        SpriteElement currentElem;
 
-        memcpy_P(&current_frame_elem,
-                 &frame_elements[current_frame.frame_elems_start + idx],
+        memcpy_P(&currentFrameElem,
+                 &frameElems[currentFrame.frameElemsStart + idx],
                  sizeof(SpriteFrameElement));
 
-        elem_pos_x = (int16_t)current_frame_elem.pos_x;
-        elem_flags = current_frame_elem.flags;
-        memcpy_P(&current_elem, &elements[current_frame_elem.element_idx],
+        elem_pos_x = (int16_t)currentFrameElem.posX;
+        elemFlags = currentFrameElem.flags;
+        memcpy_P(&currentElem, &elements[currentFrameElem.elementIdx],
                  sizeof(SpriteElement));
 
-        if(flags & ARD_FLAGS_FLIP_X) {
-          uint8_t elem_width = current_elem.width;
+        if (flags & ARD_FLAGS_FLIP_X) {
+          uint8_t elem_width = currentElem.width;
           elem_pos_x = -elem_pos_x - elem_width + 1;
-          elem_flags = ( ((~elem_flags) & ARD_FLAGS_FLIP_X) |
-                          (elem_flags & (~ARD_FLAGS_FLIP_X)) );
+          elemFlags = ( ((~elemFlags) & ARD_FLAGS_FLIP_X) |
+                          (elemFlags & (~ARD_FLAGS_FLIP_X)) );
         }
 
-        DrawElement(renderer, current_elem,
-                    pos_x + elem_pos_x, pos_y +
-                    (int16_t)current_frame_elem.pos_y,
-                    elem_flags);
+        drawElement(renderer, currentElem,
+                    posX + elem_pos_x, posY +
+                    (int16_t)currentFrameElem.posY,
+                    elemFlags);
     }
 }
 
-int32_t Sprite::MeasureAnimationFrame(uint8_t animation, uint8_t frame) {
-    SpriteAnim current_anim;
-    memcpy_P(&current_anim, &anims[animation], sizeof(SpriteAnim));
+int32_t Sprite::measureAnimationFrame(uint8_t animation, uint8_t frame) {
+    SpriteAnim currentAnim;
+    memcpy_P(&currentAnim, &anims[animation], sizeof(SpriteAnim));
 
-    SpriteAnimFrame current_frame;
-    memcpy_P(&current_frame,
-             &anim_frames[current_anim.frames_start + frame],
+    SpriteAnimFrame currentFrame;
+    memcpy_P(&currentFrame,
+             &animFrames[currentAnim.framesStart + frame],
              sizeof(SpriteAnimFrame));
 
     int16_t width = 0;
     int16_t height = 0;
 
-    int16_t crt_width = 0;
-    int16_t crt_height = 0;
+    int16_t crtWidth = 0;
+    int16_t crtHeight = 0;
 
-    for(int idx = 0; idx < current_frame.nb_elems; ++idx)
-    {
-        SpriteFrameElement current_frame_elem;
-        SpriteElement current_elem;
+    for (int idx = 0; idx < currentFrame.elemsNb; ++idx) {
+        SpriteFrameElement currentFrameElem;
+        SpriteElement currentElem;
 
-        memcpy_P(&current_frame_elem,
-                 &frame_elements[current_frame.frame_elems_start + idx],
+        memcpy_P(&currentFrameElem,
+                 &frameElems[currentFrame.frameElemsStart + idx],
                  sizeof(SpriteFrameElement));
-        memcpy_P(&current_elem, &elements[current_frame_elem.element_idx],
+        memcpy_P(&currentElem, &elements[currentFrameElem.elementIdx],
                  sizeof(SpriteElement));
 
-        crt_width = (int16_t)current_frame_elem.pos_x +
-                                (int16_t)current_elem.width;
-        crt_height = (int16_t)current_frame_elem.pos_y +
-                                (int16_t)current_elem.height;
-        if(crt_width > width) {
-            width = crt_width;
+        crtWidth = (int16_t)currentFrameElem.posX +
+                                (int16_t)currentElem.width;
+        crtHeight = (int16_t)currentFrameElem.posY +
+                                (int16_t)currentElem.height;
+        if (crtWidth > width) {
+            width = crtWidth;
         }
-        if(crt_height > height) {
-            height = crt_height;
+        if (crtHeight > height) {
+            height = crtHeight;
         }
     }
     return (width | (height << 16));
 }
 
-void SpriteAnimator::Init(Sprite* animated_sprite) {
-    sprite = animated_sprite;
-    is_playing = false;
+void SpriteAnimator::init(Sprite* animSprite) {
+    sprite = animSprite;
+    isPlaying = false;
 }
 
-void SpriteAnimator::SetAnimation(uint8_t animation, uint8_t flags, bool loop) {
-    current_anim = animation;
-    current_anim_frame = 0;
-    current_anim_flags = flags;
-    current_frame_time = 0;
-    loop_anim = loop;
-    is_playing = true;
+void SpriteAnimator::setAnimation(uint8_t animation, uint8_t flags, bool loop) {
+    currentAnim = animation;
+    currentAnimFrame = 0;
+    currentAnimFlags = flags;
+    currentFrameTime = 0;
+    loopAnim = loop;
+    isPlaying = true;
 }
 
-bool SpriteAnimator::Update(uint16_t dt)
-{
-    if(is_playing == false) {
+bool SpriteAnimator::update(uint16_t dt) {
+    if (isPlaying == false) {
         return false;
     }
     SpriteAnim anim;
-    SpriteAnimFrame current_frame;
-    memcpy_P(&anim, &sprite->anims[current_anim], sizeof(SpriteAnim));
-    memcpy_P(&current_frame,
-             &sprite->anim_frames[anim.frames_start +
-                                  current_anim_frame],
+    SpriteAnimFrame currentFrame;
+    memcpy_P(&anim, &sprite->anims[currentAnim], sizeof(SpriteAnim));
+    memcpy_P(&currentFrame,
+             &sprite->animFrames[anim.framesStart +
+                                  currentAnimFrame],
              sizeof(SpriteAnimFrame));
 
-    uint16_t current_duration = (uint16_t)current_frame.duration * 10;
-    current_frame_time += dt;
+    uint16_t currentDuration = (uint16_t)currentFrame.duration * 10;
+    currentFrameTime += dt;
 
-    while(current_frame_time > current_duration) {
-        current_frame_time -= current_duration;
-        if(current_anim_frame < anim.nb_frames - 1) {
-            current_anim_frame ++;
-        }
-        else if(loop_anim) {
-            current_anim_frame = 0;
-        }
-        else {
-            is_playing = false;
+    while (currentFrameTime > currentDuration) {
+        currentFrameTime -= currentDuration;
+        if (currentAnimFrame < anim.framesNb - 1) {
+            currentAnimFrame++;
+        } else if (loopAnim) {
+            currentAnimFrame = 0;
+        } else {
+            isPlaying = false;
             return false;
         }
-        memcpy_P(&current_frame,
-                 &sprite->anim_frames[anim.frames_start +
-                                      current_anim_frame],
+        memcpy_P(&currentFrame,
+                 &sprite->animFrames[anim.framesStart +
+                                      currentAnimFrame],
                  sizeof(SpriteAnimFrame));
-        current_duration = (uint16_t)current_frame.duration * 10;
+        currentDuration = (uint16_t)currentFrame.duration * 10;
     }
     return true;
 }
 
-void SpriteAnimator::Draw(SpriteRenderer* renderer,
-                          int16_t pos_x, int16_t pos_y)
-{
-    sprite->DrawAnimationFrame(renderer, current_anim,
-                               current_anim_frame, pos_x, pos_y,
-                               current_anim_flags);
+void SpriteAnimator::draw(SpriteRenderer* renderer,
+                          int16_t posX, int16_t posY) {
+    sprite->drawAnimationFrame(renderer, currentAnim,
+                               currentAnimFrame, posX, posY,
+                               currentAnimFlags);
 }
 
-void Font::Create(const uint8_t* data, const uint8_t* map_data, uint8_t map_len,
-                  uint8_t space_w, uint8_t height, uint8_t def_frame) {
-    mapping = map_data;
-    mapping_len = map_len;
-    space_width = space_w;
-    font_height = height;
-    default_frame = def_frame;
-    Sprite::Create(data);
+void Font::create(const uint8_t* data, const uint8_t* mapData, uint8_t mapLen,
+                  uint8_t spaceW, uint8_t height, uint8_t defFrame) {
+    mapping = mapData;
+    mappingLen = mapLen;
+    spaceWidth = spaceW;
+    fontHeight = height;
+    defaultFrame = defFrame;
+    Sprite::create(data);
 }
 
 #define MAX_STR_SIZE_BUFF   (64)
-uint8_t str_size_buff[MAX_STR_SIZE_BUFF];
+uint8_t s_strSizeBuff[MAX_STR_SIZE_BUFF];
 
-uint16_t Font::GetStringWidth(const char* string, int8_t char_spacing) {
+uint16_t Font::getStringWidth(const char* string, int8_t charSpacing) {
     uint16_t width = 0;
     uint8_t  idx = 0;
-    uint8_t  crt_frame;
-    uint16_t crt_frame_w;
+    uint8_t  crtFrame;
+    uint16_t crtFrameW;
     static int test = 1;
 
-    while(string[idx] && idx < MAX_STR_SIZE_BUFF) {
-        if(string[idx] < mapping_len) {
-            crt_frame = pgm_read_byte(&mapping[string[idx]]);
-            if (test == 1) {
-                for(int i = 0; i < mapping_len; ++ i){
-                    Serial.println(pgm_read_byte(mapping +i));
-                }
-                test = 0;
-            }
-            if(crt_frame != default_frame) {
-                crt_frame_w = GET_W_FROM_SIZE(
-                                MeasureAnimationFrame(0, crt_frame));
+    while (string[idx] && idx < MAX_STR_SIZE_BUFF) {
+        if (string[idx] < mappingLen) {
+            crtFrame = pgm_read_byte(&mapping[string[idx]]);
+            if (crtFrame != defaultFrame) {
+                crtFrameW = GET_W_FROM_SIZE(measureAnimationFrame(0, crtFrame));
             } else {
-                crt_frame_w = space_width;
+                crtFrameW = spaceWidth;
             }
         } else {
-            crt_frame_w = space_width;
+            crtFrameW = spaceWidth;
         }
-        str_size_buff[idx] = crt_frame_w;
-        width += crt_frame_w;
+        s_strSizeBuff[idx] = crtFrameW;
+        width += crtFrameW;
         ++idx;
 
-        if(string[idx]) {
-            width += char_spacing;
+        if (string[idx]) {
+            width += charSpacing;
         }
     }
     return width;
 }
 
-void Font::DrawString(SpriteRenderer* renderer, const char* string,
-                      int16_t pos_x, int16_t pos_y,
-                      uint8_t anchor, int8_t char_spacing) {
-    uint8_t crt_frame;
-    int16_t width = GetStringWidth(string, char_spacing);
+void Font::drawString(SpriteRenderer* renderer, const char* string,
+                      int16_t posX, int16_t posY,
+                      uint8_t anchor, int8_t charSpacing) {
+    uint8_t crtFrame;
+    int16_t width = getStringWidth(string, charSpacing);
     uint8_t idx = 0;
 
-    if(anchor & (ANCHOR_HCENTER | ANCHOR_RIGHT)) {
-        if(anchor & ANCHOR_HCENTER) {
-            pos_x -= (width >> 1);
+    if (anchor & (ANCHOR_HCENTER | ANCHOR_RIGHT)) {
+        if (anchor & ANCHOR_HCENTER) {
+            posX -= (width >> 1);
         } else {
-            pos_x -= width;
+            posX -= width;
         }
     }
-    if(anchor & ANCHOR_VCENTER) {
-        pos_y += (font_height >> 1);
-    } else if(anchor & ANCHOR_TOP) {
-        pos_y += font_height;
+    if (anchor & ANCHOR_VCENTER) {
+        posY += (fontHeight >> 1);
+    } else if (anchor & ANCHOR_TOP) {
+        posY += fontHeight;
     }
-    while(string[idx] && idx < MAX_STR_SIZE_BUFF) {
-        if(string[idx] < mapping_len) {
-            crt_frame = pgm_read_byte(&mapping[string[idx]]);
-            if(crt_frame != default_frame) {
-                DrawAnimationFrame(renderer, 0, crt_frame, pos_x, pos_y, 0);
+    while (string[idx] && idx < MAX_STR_SIZE_BUFF) {
+        if (string[idx] < mappingLen) {
+            crtFrame = pgm_read_byte(&mapping[string[idx]]);
+            if (crtFrame != defaultFrame) {
+                drawAnimationFrame(renderer, 0, crtFrame, posX, posY, 0);
             }
         }
-        pos_x += str_size_buff[idx];
+        posX += s_strSizeBuff[idx];
         ++idx;
     }
 }
-

@@ -1,6 +1,9 @@
-#ifndef __CAR_H__
-#define __CAR_H__
+// Copyright 2018 Catalin G. Manciu
 
+#ifndef CAR_H_
+#define CAR_H_
+
+#include "stdinc.h"
 #include "defs.h"
 #include "ardusprite.h"
 #include "sprites.h"
@@ -8,35 +11,36 @@
 class SpriteRenderer;
 class Level;
 class Car {
-    public:
-        void Initialize(int16_t y);
-        void Draw(SpriteRenderer* renderer);
-        void Update(int16_t dt);
-        int32_t GetX()      { return x_pos; }
-        int32_t GetRPM()    { return engine_rpm; }
-        int32_t GetSpeed()  { return speed; }
-        int8_t  GetGear()   { return gear; }
-        void ShiftGear(bool up = true);
-        void PedalToTheMetal(bool on);
-        void Clutch(bool on);
-        bool IsClutched()   { return clutch; }
+ public:
+    Car() {}
+    void initialize(int16_t y);
+    void draw(SpriteRenderer* renderer);
+    void update(int16_t dt);
+    FP32& getX()                        { return xPos; }
+    FP32& getRPM()                      { return engineRPM; }
+    FP32& getSpeed()                    { return speed; }
+    int8_t getGear()                    { return gear; }
+    void shiftGear(bool up = true);
+    void pedalToTheMetal(bool on);
+    void setClutch(bool on)             { clutch = on; }
+    bool isClutched()                   { return clutch; }
 
-    private:
-        int32_t x_pos;  //In world coords
-        int16_t y_pos;  //In screen coords
-        int8_t  gear;
-        int32_t engine_rpm;
-        int32_t wheels_rpm;
-        int32_t speed;
-        int32_t throttle;
-        bool    clutch;
-        SpriteAnimator reflection;
-        SpriteAnimator wheels;
-        void UpdateEngine(int16_t dt);
-        void UpdateWheelsAnim(int16_t dt);
-        inline bool EngineIsConnected() { return gear > 0 &&
-                                                 clutch == false; };
+ private:
+    FP32 xPos;      // In world coords
+    int16_t yPos;   // In screen coords
+    int8_t  gear;
+    FP32 engineRPM;
+    FP32 wheelsRPM;
+    FP32 speed;
+    FP32 throttle;
+    bool clutch;
+    SpriteAnimator reflection;
+    SpriteAnimator wheels;
+    void updateEngine(int16_t dt);
+    void updateWheelsAnim(int16_t dt);
+    inline bool engineIsConnected() { return gear > 0 &&
+                                                clutch == false; }
 };
 
-#endif
+#endif  // CAR_H_
 

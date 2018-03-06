@@ -1,4 +1,6 @@
+// Copyright 2018 Catalin G. Manciu
 
+#include "stdinc.h"
 #include "defs.h"
 #include "ardusprite.h"
 #include "renderer.h"
@@ -10,8 +12,8 @@
 #include "fontmap.h"
 
 Arduboy app;
-uint8_t         buttons_state;
-uint8_t         old_buttons_state;
+uint8_t         buttonsState;
+uint8_t         oldButtonsState;
 SpriteRenderer  renderer;
 Level           lvl;
 
@@ -24,31 +26,31 @@ void setup() {
     app.setFrameRate(30);
     app.clear();
 
-    buttons_state = 0;
-    old_buttons_state = 0;
-    GetSprite(SPRITE_ENV)->Create(ENV_SPRITE_DATA);
-    GetSprite(SPRITE_CAR)->Create(CAR_SPRITE_DATA);
-    GetFont(FONT_MAIN)->Create(FONT_DATA, mapping, nb_map_elems,
+    buttonsState = 0;
+    oldButtonsState = 0;
+    GetSprite(SPRITE_ENV)->create(ENV_SPRITE_DATA);
+    GetSprite(SPRITE_CAR)->create(CAR_SPRITE_DATA);
+    GetFont(FONT_MAIN)->create(FONT_DATA, mapping, nb_map_elems,
                                MAIN_FONT_SPACE_W, MAIN_FONT_HEIGHT,
                                default_frame);
-    renderer.Initialize(app.getBuffer(), 128);
-    renderer.SetClip(0, 0, 128, 64);
-    lvl.Initialize();
+    renderer.initialize(app.getBuffer(), 128);
+    renderer.setClip(0, 0, 128, 64);
+    lvl.initialize();
     Serial.begin(9600);
 }
 
 void loop() {
-    if(!app.nextFrame()) {
+    if (!app.nextFrame()) {
         return;
     }
 
     app.clear();
 
-    old_buttons_state = buttons_state;
-    buttons_state = app.buttonsState();
+    oldButtonsState = buttonsState;
+    buttonsState = app.buttonsState();
 
-    lvl.Update(33, buttons_state, old_buttons_state);
-    lvl.Render(&renderer);
+    lvl.update(33, buttonsState, oldButtonsState);
+    lvl.render(&renderer);
 
     app.display();
 }

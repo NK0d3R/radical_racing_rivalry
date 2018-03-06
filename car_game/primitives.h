@@ -1,119 +1,153 @@
-#ifndef __PRIMITIVES_H__
-#define __PRIMITIVES_H__
+// Copyright 2018 Catalin G. Manciu
 
-#include "defs.h"
+#ifndef PRIMITIVES_H_
+#define PRIMITIVES_H_
 
-template <typename type> struct VectorT;
-template <typename type> struct LineT;
+#include "stdinc.h"
 
-typedef VectorT<int32_t> Vector;
-typedef LineT<int32_t> Line;
+template <typename T> struct LineT;
+template <typename T> struct VectorT;
 
 struct Rect {
     int16_t x;
     int16_t y;
     int16_t w;
     int16_t h;
-    int16_t max_x;
-    int16_t max_y;
+    int16_t maxX;
+    int16_t maxY;
 
     Rect() {
-        Set(0, 0, 0, 0);
-    };
+        set(0, 0, 0, 0);
+    }
 
     Rect(int16_t _x, int16_t _y, int16_t _w, int16_t _h) {
-        Set(_x, _y, _w, _h);
-    };
+        set(_x, _y, _w, _h);
+    }
 
-    void Set(int16_t _x, int16_t _y, int16_t _w, int16_t _h) {
+    inline void set(int16_t _x, int16_t _y, int16_t _w, int16_t _h) {
         x = _x;
         y = _y;
         w = _w;
         h = _h;
-        max_x = x + w;
-        max_y = y + h;
-    };
+        maxX = x + w - 1;
+        maxY = y + h - 1;
+    }
 
-    void Clip(const Rect& other);
-    void ClipLineX(Line& line);
-    void ClipPoint(Vector& point);
-    bool IsInside(const Vector& point);
-    bool IsEmpty() const {return (w == 0 || h == 0);};
+    bool isEmpty() const { return (w == 0 || h == 0); }
+    void clip(const Rect& other);
+
+    template <typename T>
+    void clipLineX(LineT<T>* line) {
+#define OUTSIDE_LEFT        (1)
+#define OUTSIDE_RIGHT       (1<<1)
+#define INSIDE              (1<<2)
+#define OUTSIDE_MASK        (OUTSIDE_LEFT | OUTSIDE_RIGHT)
+#define GET_STATUS_X(xpos)  (xpos < fpX ? OUTSIDE_LEFT :                \
+                            (xpos > fpXMax ? OUTSIDE_RIGHT : INSIDE));
+        T fpX = T(x);
+        T fpXMax = T(maxX);
+        int8_t startXStatus = GET_STATUS_X(line->start.x);
+        int8_t endXStatus = GET_STATUS_X(line->end.x);
+        if (((startXStatus & endXStatus) & OUTSIDE_MASK) != 0) {
+            line->start = {0, 0};
+            line->end = {0, 0};
+            return;
+        }
+        VectorT<T> diff = line->end - line->start;
+        if (diff.x == 0) {
+             if (((startXStatus | endXStatus) & OUTSIDE_MASK) != 0) {
+                line->start = {0, 0};
+                line->end = {0, 0};
+             }
+            return;
+        }
+        T pitch = diff.y / diff.x;
+        if (startXStatus != INSIDE) {
+            if (line->start.x < fpX) {
+                line->start.x = fpX;
+            } else {
+                line->start.x = fpXMax;
+            }
+            line->start.y = line->end.y -
+                            (pitch * (line->end.x - line->start.x));
+        }
+        if (endXStatus != INSIDE) {
+            if (line->end.x < fpX) {
+                line->end.x = fpX;
+            } else {
+                line->end.x = fpXMax;
+            }
+            line->end.y = line->start.y +
+                          (pitch * (line->end.x - line->start.x));
+        }
+    }
 };
 
-template <typename type>
-struct VectorT 
-{
-    type x;
-    type y;
+template <typename T>
+struct VectorT {
+    T x;
+    T y;
 
     VectorT(): x(0), y(0) {
     }
 
-    VectorT(type _x, type _y):x(_x), y(_y) {    
+    VectorT(T _x, T _y):x(_x), y(_y) {
     }
 
-    VectorT& operator += (const VectorT& other)
-    {
+    VectorT& operator += (const VectorT& other) {
         x += other.x;
         y += other.y;
         return *this;
     }
 
-    VectorT& operator -= (const VectorT& other)
-    {
+    VectorT& operator -= (const VectorT& other) {
         x -= other.x;
         y -= other.y;
         return *this;
     }
 
-    VectorT& operator *= (int32_t scalar)
-    {
-        x = FROM_FIXED_POINT(x * scalar);
-        y = FROM_FIXED_POINT(y * scalar);
+    VectorT& operator *= (T scalar) {
+        x *= scalar;
+        y *= scalar;
         return *this;
     }
 
-    VectorT& operator /= (int32_t scalar)
-    {
-        x = (TO_FIXED_POINT(x) / scalar);
-        y = (TO_FIXED_POINT(y) / scalar);
+    VectorT& operator /= (T scalar) {
+        x /= scalar;
+        y /= scalar;
         return *this;
     }
 
-    VectorT operator + (const VectorT& other)
-    {
+    VectorT operator + (const VectorT& other) {
         return {x + other.x, y + other.y};
     }
 
-    VectorT operator - (const VectorT& other)
-    {
+    VectorT operator - (const VectorT& other) {
         return {x - other.x, y - other.y};
     }
 
-    type magnitudeSQ() { return FROM_FIXED_POINT(x * x + y * y);}
-    type magnitude() { return sqrt(x * x + y * y); }
-    type dot(const VectorT& other) { 
-        return FROM_FIXED_POINT(x * other.x + y * other.y);
+    T magnitudeSQ() { return ((x * x) + (y * y)); }
+    T magnitude() { return T(sqrt(x * x + y * y)); }
+    T dot(const VectorT& other) {
+        return (x * other.x) + (y * other.y);
     }
-    void normalize() { type mag = magnitude(); *this /= mag; }
+    void normalize() { T mag = magnitude(); *this /= mag; }
 };
 
-template <typename type>
-struct LineT
-{
-    VectorT<type> start;
-    VectorT<type> end;
+template <typename T>
+struct LineT {
+    VectorT<T> start;
+    VectorT<T> end;
 
-    LineT(type start_x, type start_y, type end_x, type end_y):
+    LineT(T start_x, T start_y, T end_x, T end_y):
             start(start_x, start_y), end(end_x, end_y) {
     }
 
-    bool Exists() {
-        VectorT<type> diff = end - start;
-        return (diff.x != 0) || (diff.y != 0);
+    bool exists() {
+        VectorT<T> diff = end - start;
+        return (diff.x.getInt() != 0) || (diff.y.getInt() != 0);
     }
 };
 
-#endif //__PRIMITIVES_H__
+#endif  // PRIMITIVES_H_
 
