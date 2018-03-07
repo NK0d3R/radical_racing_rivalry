@@ -43,27 +43,36 @@ def main():
                          (variable_name_base, variable_name_base))
             output.write("#define %s%s%d\n" % (
                          variable_name_size, tab_str, file_size))
-            output.write("PROGMEM const uint8_t %s[] = {\n%s" %
-                         (variable_name_data, tab_str))
+            output.write("PROGMEM const uint8_t %s[] = {" %
+                         (variable_name_data))
 
             crt_line_byte = 0
+            needs_newline = True
+            needs_final_newline = True
             while True:
                 chunk = input.read(buffer_size)
                 if chunk:
-                    new_line_finish = False
                     for idx, byte in enumerate(chunk):
+                        if needs_newline:
+                            output.write("\n%s" % (tab_str))
+                            needs_newline = False
+                            needs_final_newline = False
                         output.write("%s,"%
                                      format(ord(byte), "#04x"))
                         crt_line_byte += 1
                         if crt_line_byte == options.maxvals:
-                            output.write("\n%s" % (tab_str))
+                            needs_newline = True
                             crt_line_byte = 0
                         else:
                             if idx < len(chunk) - 1:
                                 output.write(" ")
+                            else:
+                                needs_final_newline = True
                 else:
                     break
-                output.write("\n};\n\n#endif  // %s_H_\n" %
+                if needs_newline or needs_final_newline:
+                    output.write("\n")
+                output.write("};\n\n#endif  // %s_H_\n" %
                              (variable_name_base))
 
 if __name__ == "__main__":
