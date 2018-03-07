@@ -5,7 +5,7 @@
 
 #include "stdinc.h"
 
-template<typename T, int shift>
+template<typename T, typename T2, int shift>
 struct FPValue {
     T value;
 
@@ -43,12 +43,12 @@ struct FPValue {
     }
 
     FPValue& operator*=(const FPValue& other) {
-        value = DOWNSHIFT(value * other.value);
+        value = DOWNSHIFT((T2)value * (T2)other.value);
         return *this;
     }
 
     FPValue& operator/=(const FPValue& other) {
-        value = UPSHIFT(value) / other.value;
+        value = UPSHIFT((T2)value) / (T2)other.value;
         return *this;
     }
 

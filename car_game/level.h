@@ -72,7 +72,8 @@ class Level {
 
     BackgroundLayer* bgLayers[NB_BG_LAYERS];
     void drawLevelBackground(SpriteRenderer* renderer);
-    void drawHud(SpriteRenderer* renderer);
+    void drawHUD(SpriteRenderer* renderer);
+    void drawMainCarHUD(SpriteRenderer* renderer, int16_t x, int16_t y);
 };
 
 #endif  // LEVEL_H_

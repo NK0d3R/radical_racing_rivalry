@@ -16,7 +16,7 @@ void Level::initialize() {
 void Level::render(SpriteRenderer* renderer) {
     drawLevelBackground(renderer);
     mainCar.draw(renderer);
-    drawHud(renderer);
+    drawHUD(renderer);
 }
 
 int16_t Level::BackgroundLayer::camPosToOffset(const FP32& cameraPosition) {
@@ -85,18 +85,41 @@ void Level::drawLevelBackground(SpriteRenderer* renderer) {
     }
 }
 
-void Level::drawHud(SpriteRenderer* renderer) {
-    char tmp[32];
-    snprintf(tmp, sizeof(tmp), "Gear:%d", mainCar.getGear());
-    GetFont(FONT_MAIN)->drawString(renderer, tmp, SCREEN_W, 45,
-                                   (ANCHOR_BOTTOM | ANCHOR_RIGHT));
-    snprintf(tmp, sizeof(tmp), "%dRPM", mainCar.getRPM().getInt());
-    GetFont(FONT_MAIN)->drawString(renderer, tmp, SCREEN_W, 55,
-                                   (ANCHOR_BOTTOM | ANCHOR_RIGHT));
-    snprintf(tmp, sizeof(tmp), "%dKPH",
-             MPS_TO_KPH(mainCar.getSpeed()).getInt());
-    GetFont(FONT_MAIN)->drawString(renderer, tmp, SCREEN_W, 64,
-                                   (ANCHOR_BOTTOM | ANCHOR_RIGHT));
+void Level::drawMainCarHUD(SpriteRenderer* renderer, int16_t x, int16_t y) {
+// Draw RPM bar
+    GetSprite(SPRITE_CAR)->drawAnimationFrame(renderer, CAR_RPM_HUD,
+                                              HUD_FRAME_RPM, x, y, 0);
+    int32_t barLength = ((mainCar.getRPM() * MAX_RPM_BAR_LENGTH) /
+                          Defs::MAX_RPM).getInt();
+    CLAMP_UPPER(barLength, MAX_RPM_BAR_LENGTH);
+    renderer->setClip(x + 1, 0, barLength + 2, SCREEN_H);
+    GetSprite(SPRITE_CAR)->drawAnimationFrame(renderer, CAR_RPM_HUD,
+                                              HUD_FRAME_RPM_BAR, x, y, 0);
+    renderer->setClip(0, 0, SCREEN_W, SCREEN_H);
+// Draw speed
+    int16_t crtX = x + 23;
+    int16_t crtY = y - 5;
+    int32_t speed = MPS_TO_KPH(mainCar.getSpeed()).getInt();
+    for (int8_t digit = 0; digit < 3; ++digit) {
+        GetSprite(SPRITE_CAR)->drawAnimationFrame(renderer, CAR_SPEED_FONT,
+                                                  (speed % 10), crtX, crtY, 0);
+        speed /= 10;
+        crtX -= CAR_SPEED_FONT_W;
+    }
+// Draw unit
+    uint8_t unitFrame = HUD_FRAME_KPH;
+    if (mainCar.getRPM() > 7200) {
+        unitFrame = HUD_FRAME_WARNING;
+    }
+    GetSprite(SPRITE_CAR)->drawAnimationFrame(renderer, CAR_RPM_HUD,
+                                              unitFrame, x, y, 0);
+// Draw gear
+    GetSprite(SPRITE_CAR)->drawAnimationFrame(renderer, CAR_SPEED_FONT,
+                                              mainCar.getGear(), x, y, 0);
+}
+
+void Level::drawHUD(SpriteRenderer* renderer) {
+    drawMainCarHUD(renderer, 94, 64);
 }
 
 void Level::updateControls(uint8_t buttonsState, uint8_t oldButtonsState) {

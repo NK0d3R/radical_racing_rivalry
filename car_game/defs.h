@@ -6,7 +6,7 @@
 #include "primitives.h"
 #include "fixedpoint.h"
 
-typedef FPValue<int32_t, 8> FP32;
+typedef FPValue<int32_t, int64_t, 8> FP32;
 typedef VectorT<FP32> Vector;
 typedef LineT<FP32> Line;
 
@@ -16,6 +16,21 @@ typedef LineT<FP32> Line;
 #define SPRITE_ENV      (0)
 #define SPRITE_CAR      (1)
 #define NB_SPRITES      (2)
+
+#define CAR_BODY_ANIM       (0)
+#define CAR_WHEELS_ANIM     (1)
+#define CAR_REFLECTION_ANIM (2)
+#define CAR_RPM_HUD         (3)
+#define CAR_SPEED_FONT      (4)
+
+#define HUD_FRAME_RPM       (0)
+#define HUD_FRAME_RPM_BAR   (1)
+#define HUD_FRAME_KPH       (2)
+#define HUD_FRAME_MPH       (3)
+#define HUD_FRAME_WARNING   (4)
+
+#define MAX_RPM_BAR_LENGTH  (32)
+#define CAR_SPEED_FONT_W    (5)
 
 #define FONT_MAIN       (0)
 #define NB_FONTS        (1)
@@ -44,6 +59,8 @@ struct Defs {
     static const FP32 FP_HALF_SCR_W;
     static const FP32 FP_SCR_H;
     static const FP32 FP_HALF_SCR_H;
+    static const FP32 MIN_RPM;
+    static const FP32 MAX_RPM;
 };
 #endif  // DEFS_H__
 

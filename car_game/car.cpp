@@ -1,16 +1,10 @@
 // Copyright 2018 Catalin G. Manciu
 
+#include "defs.h"
 #include "car.h"
 #include "sprites.h"
 #include "renderer.h"
 #include "level.h"
-
-#define BODY_ANIM       (0)
-#define WHEELS_ANIM     (1)
-#define REFLECTION_ANIM (2)
-
-#define MIN_RPM         FP32(1100)
-#define MAX_RPM         FP32(8000)
 
 // Torque (in Nm)
 constexpr FP32 g_torques[] PROGMEM = {
@@ -45,9 +39,9 @@ constexpr FP32 g_gearRatios[] PROGMEM = {
 #define MAX_GEAR               ((sizeof(g_gearRatios)/sizeof(FP32)) - 1)
 
 FP32 RPM2Torque(const FP32& rpm) {
-    if (rpm < MIN_RPM) {
+    if (rpm < Defs::MIN_RPM) {
         return g_torques[0];
-    } else if (rpm > MAX_RPM) {
+    } else if (rpm > Defs::MAX_RPM) {
         return FP32(0);
     }
     int32_t rpmI = rpm.getInt();
@@ -80,8 +74,8 @@ void Car::initialize(int16_t y) {
 
     wheels.init(GetSprite(SPRITE_CAR));
     reflection.init(GetSprite(SPRITE_CAR));
-    wheels.setAnimation(WHEELS_ANIM, 0, true);
-    reflection.setAnimation(REFLECTION_ANIM, 0, true);
+    wheels.setAnimation(CAR_WHEELS_ANIM, 0, true);
+    reflection.setAnimation(CAR_REFLECTION_ANIM, 0, true);
 }
 
 void Car::shiftGear(bool up = true) {
@@ -98,7 +92,7 @@ void Car::shiftGear(bool up = true) {
 
 void Car::draw(SpriteRenderer* renderer) {
     int32_t x = GetLevel().worldToScreen(xPos);
-    GetSprite(SPRITE_CAR)->drawAnimationFrame(renderer, BODY_ANIM,
+    GetSprite(SPRITE_CAR)->drawAnimationFrame(renderer, CAR_BODY_ANIM,
                                               0, x, yPos, 0);
     wheels.draw(renderer, x - 12, yPos);
     wheels.draw(renderer, x + 13, yPos);
@@ -137,7 +131,7 @@ void Car::updateEngine(int16_t dt) {
         forwardForce = (throttle * engineTorque * getGearRatio(gear)) /
                         WHEEL_RADIUS;
     } else {
-        targetEngineRPM = (MIN_RPM) + (throttle * MAX_RPM);
+        targetEngineRPM = (Defs::MIN_RPM) + (throttle * Defs::MAX_RPM);
         if (engineRPM < targetEngineRPM) {
             engineRPM = (targetEngineRPM + engineRPM) / 2;
         } else {
@@ -150,7 +144,7 @@ void Car::updateEngine(int16_t dt) {
                      WIND_RESISTANCE_DIV;
     FP32 accel = forwardForce / VEHICLE_MASS;
     speed += (accel * fpDT) / 1000;
-    CLAMP_LOWER(speed, FP32(0));
+    speed.clampLower(FP32(0));
     xPos += (speed * fpDT) / 1000;
 }
 
