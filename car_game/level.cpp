@@ -4,24 +4,10 @@
 #include "renderer.h"
 #include "sprites.h"
 
-void Level::initialize() {
-    cameraPosition = 0;
-    bgLayers[0] = new BackgroundSprite(25, 0, BACKGROUND_SUN_FRM, 0);
-    bgLayers[1] = new BackgroundSprite(23, 190, BACKGROUND_LAYER_1, 25);
-    bgLayers[2] = new BackgroundSprite(25, 190, BACKGROUND_LAYER_1, 100);
-    bgLayers[3] = new BackgroundGrid(25, 40, 10, 135);
-    mainCar.initialize(60);
-}
-
-void Level::render(SpriteRenderer* renderer) {
-    drawLevelBackground(renderer);
-    mainCar.draw(renderer);
-    drawHUD(renderer);
-}
-
 int16_t Level::BackgroundLayer::camPosToOffset(const FP32& cameraPosition) {
     return (M_TO_PIXELS((cameraPosition * offsetFactor) / 10).getInt());
 }
+
 
 void Level::BackgroundGrid::drawSingleLine(SpriteRenderer* renderer,
                                            int16_t x, int16_t yTop,
@@ -62,6 +48,7 @@ void Level::BackgroundGrid::draw(SpriteRenderer* renderer,
     }
 }
 
+
 void Level::BackgroundSprite::draw(SpriteRenderer* renderer,
                                    const FP32& cameraPosition) {
     int32_t offset = (SCREEN_W / 2);
@@ -79,9 +66,94 @@ void Level::BackgroundSprite::draw(SpriteRenderer* renderer,
 }
 
 
+Level::BackgroundChopper::BackgroundChopper() : BackgroundLayer(0) {
+    chopperAnim.init(GetSprite(SPRITE_ENV));
+    xSpeed = FP32(random(100) & 1 ? 1 : -1);
+    wait(true);
+}
+
+void Level::BackgroundChopper::wait(bool isWaiting) {
+    waiting = isWaiting;
+    if (waiting) {
+        timer = random(BG_CHOPPER_WAIT_TIME_MIN, BG_CHOPPER_WAIT_TIME_MAX);
+    } else {
+        timer = BG_CHOPPER_DECISION_TIME;
+    }
+}
+
+void Level::BackgroundChopper::restart() {
+    int32_t direction = -SGN(xSpeed.getInt());
+    if (direction < 0) {
+        xPos = FP32(SCREEN_W + BG_CHOPPER_MARGIN_OFFSET);
+    } else {
+        xPos = FP32(-BG_CHOPPER_MARGIN_OFFSET);
+    }
+    xSpeed = FP32(direction * random(20, 40));
+    chopperAnim.setAnimation(BACKGROUND_CHOPPER_ANIM,
+                            direction == -1 ? ARD_FLAGS_FLIP_X : 0,
+                            true);
+    yPos = random(10, 15);
+}
+
+void Level::BackgroundChopper::update(int16_t dt) {
+    if (waiting == false) {
+        xPos += (xSpeed * FP32(dt)) / 1000;
+        if (xPos.getInt() < -BG_CHOPPER_MARGIN_OFFSET ||
+            xPos.getInt() > SCREEN_W + BG_CHOPPER_MARGIN_OFFSET) {
+            wait(true);
+        } else {
+            timer -= dt;
+            if (timer < 0) {
+                timer = BG_CHOPPER_DECISION_TIME;
+                if (random(100) < 60) {
+                    yPos += random(-1, 3);
+                }
+                if (random(100) < 10) {
+                    xSpeed *= -1;
+                    chopperAnim.setAnimation(BACKGROUND_CHOPPER_ANIM,
+                                             xSpeed.getInt() < 0 ?
+                                             ARD_FLAGS_FLIP_X : 0,
+                                             true);
+                }
+            }
+        }
+        chopperAnim.update(dt);
+    } else {
+        timer -= dt;
+        if (timer < 0) {
+            wait(false);
+            restart();
+        }
+    }
+}
+
+void Level::BackgroundChopper::draw(SpriteRenderer* renderer,
+                                   const FP32& cameraPosition) {
+    if (waiting == false) {
+        chopperAnim.draw(renderer, xPos.getInt(), yPos);
+    }
+}
+
+
+void Level::initialize() {
+    cameraPosition = 0;
+    bgLayers[0] = new BackgroundSprite(25, 0, BACKGROUND_SUN_FRM, 0);
+    bgLayers[1] = new BackgroundSprite(23, 190, BACKGROUND_LAYER_1, 25);
+    bgLayers[2] = new BackgroundSprite(25, 190, BACKGROUND_LAYER_1, 100);
+    bgLayers[3] = new BackgroundGrid(25, 40, 10, 135);
+    bgLayers[4] = new BackgroundChopper();
+    mainCar.initialize(60);
+}
+
+void Level::render(SpriteRenderer* renderer) {
+    drawLevelBackground(renderer);
+    mainCar.draw(renderer);
+    drawHUD(renderer);
+}
+
 void Level::drawLevelBackground(SpriteRenderer* renderer) {
-    for (int idx = 0; idx < NB_BG_LAYERS; ++idx) {
-        bgLayers[idx]->draw(renderer, cameraPosition);
+    for (auto layer : bgLayers) {
+        layer->draw(renderer, cameraPosition);
     }
 }
 
@@ -140,6 +212,9 @@ void Level::update(int16_t dt,
     updateControls(buttonsState, oldButtonsState);
     mainCar.update(dt);
     updateCamera();
+    for (auto layer : bgLayers) {
+        layer->update(dt);
+    }
 }
 
 int32_t Level::worldToScreen(const FP32& pos) {
@@ -151,10 +226,3 @@ void Level::updateCamera() {
     cameraPosition += mainCar.getX();
     cameraPosition /= 2;
 }
-
-Level::~Level() {
-    for (int idx = 0; idx < NB_BG_LAYERS; ++idx) {
-        delete bgLayers[idx];
-    }
-}
-

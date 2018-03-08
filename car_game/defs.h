@@ -29,6 +29,11 @@ typedef LineT<FP32> Line;
 #define HUD_FRAME_MPH       (3)
 #define HUD_FRAME_WARNING   (4)
 
+#define BG_CHOPPER_MARGIN_OFFSET    (15)
+#define BG_CHOPPER_WAIT_TIME_MIN    (3000)
+#define BG_CHOPPER_WAIT_TIME_MAX    (5000)
+#define BG_CHOPPER_DECISION_TIME    (1500)
+
 #define MAX_RPM_BAR_LENGTH  (32)
 #define CAR_SPEED_FONT_W    (5)
 
@@ -38,6 +43,8 @@ typedef LineT<FP32> Line;
 #define BACKGROUND_ANIM             (0)
 #define BACKGROUND_SUN_FRM          (0)
 #define BACKGROUND_LAYER_1          (1)
+
+#define BACKGROUND_CHOPPER_ANIM     (1)
 
 #define PRECISION_SHIFT             (8)
 #define STATE_INVALID               (0xFF)

@@ -11,7 +11,7 @@
 class SpriteRenderer;
 class Sprite;
 
-#define NB_BG_LAYERS    (4)
+#define NB_BG_LAYERS    (5)
 
 Level& GetLevel();
 
@@ -24,7 +24,6 @@ class Level {
     void updateControls(uint8_t buttonsState, uint8_t oldButtonsState);
     int32_t worldToScreen(const FP32& pos);
     void updateCamera();
-    ~Level();
 
  private:
     class BackgroundLayer {
@@ -33,6 +32,7 @@ class Level {
         }
         virtual void draw(SpriteRenderer* renderer,
                             const FP32& cameraPosition) = 0;
+        virtual void update(int16_t dt) {}
      protected:
         int16_t offsetFactor;
         int16_t camPosToOffset(const FP32& cameraPosition);
@@ -48,10 +48,9 @@ class Level {
         BackgroundGrid(int16_t _yTop, int16_t _yBot,
                         int16_t _density, int16_t factor) :
                         BackgroundLayer(factor), yTop(_yTop),
-                        yBot(_yBot), density(_density) {
-        }
+                        yBot(_yBot), density(_density) {}
         virtual void draw(SpriteRenderer* renderer,
-                            const FP32& cameraPosition);
+                          const FP32& cameraPosition);
     };
 
     class BackgroundSprite : public BackgroundLayer {
@@ -65,7 +64,24 @@ class Level {
                             width(width), frame(frame) {
             }
         virtual void draw(SpriteRenderer* renderer,
-                            const FP32& cameraPosition);
+                          const FP32& cameraPosition);
+    };
+
+    class BackgroundChopper : public BackgroundLayer {
+        bool waiting;
+        int16_t yPos;
+        int16_t timer;
+        FP32 xPos;
+        FP32 xSpeed;    // in px/sec
+        SpriteAnimator chopperAnim;
+     public:
+        BackgroundChopper();
+        virtual void draw(SpriteRenderer* renderer,
+                          const FP32& cameraPosition);
+        virtual void update(int16_t dt);
+     private:
+        void restart();
+        void wait(bool isWaiting);
     };
     FP32 cameraPosition;
     Car mainCar;
