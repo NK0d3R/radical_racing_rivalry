@@ -43,6 +43,7 @@ typedef LineT<FP32> Line;
 #define BACKGROUND_ANIM             (0)
 #define BACKGROUND_SUN_FRM          (0)
 #define BACKGROUND_LAYER_1          (1)
+#define BACKGROUND_LAYER_2          (2)
 
 #define BACKGROUND_CHOPPER_ANIM     (1)
 

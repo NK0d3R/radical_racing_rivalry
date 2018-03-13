@@ -11,7 +11,7 @@
 class SpriteRenderer;
 class Sprite;
 
-#define NB_BG_LAYERS    (5)
+#define NB_BG_LAYERS    (6)
 
 Level& GetLevel();
 
@@ -65,6 +65,18 @@ class Level {
             }
         virtual void draw(SpriteRenderer* renderer,
                           const FP32& cameraPosition);
+    };
+
+    class BackgroundAnim : public BackgroundLayer {
+        int16_t yPos;
+        int16_t width;
+        SpriteAnimator bgAnimator;
+     public:
+        BackgroundAnim(int16_t y, int16_t width,
+                       uint8_t animation, int16_t factor);
+        virtual void draw(SpriteRenderer* renderer,
+                          const FP32& cameraPosition);
+        virtual void update(int16_t dt);
     };
 
     class BackgroundChopper : public BackgroundLayer {

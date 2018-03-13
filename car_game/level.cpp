@@ -134,6 +134,27 @@ void Level::BackgroundChopper::draw(SpriteRenderer* renderer,
     }
 }
 
+Level::BackgroundAnim::BackgroundAnim(int16_t y, int16_t width,
+                                      uint8_t animation, int16_t factor):
+                                      BackgroundLayer(factor), yPos(y),
+                                      width(width) {
+    bgAnimator.init(GetSprite(SPRITE_ENV));
+    bgAnimator.setAnimation(animation, 0, true);
+}
+
+void Level::BackgroundAnim::draw(SpriteRenderer* renderer,
+                                 const FP32& cameraPosition) {
+    int32_t offset = (SCREEN_W / 2);
+    if (offsetFactor != 0) {
+        offset -= (camPosToOffset(cameraPosition) % width);
+        bgAnimator.draw(renderer, offset + width, yPos);
+    }
+    bgAnimator.draw(renderer, offset, yPos);
+}
+
+void Level::BackgroundAnim::update(int16_t dt) {
+    bgAnimator.update(dt);
+}
 
 void Level::initialize() {
     cameraPosition = 0;
@@ -142,6 +163,7 @@ void Level::initialize() {
     bgLayers[2] = new BackgroundSprite(25, 190, BACKGROUND_LAYER_1, 100);
     bgLayers[3] = new BackgroundGrid(25, 40, 10, 135);
     bgLayers[4] = new BackgroundChopper();
+    bgLayers[5] = new BackgroundSprite(42, 240, BACKGROUND_LAYER_2, 430);
     mainCar.initialize(60);
 }
 
