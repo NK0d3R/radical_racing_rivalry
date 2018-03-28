@@ -33,7 +33,7 @@ constexpr FP32 g_gearRatios[] PROGMEM = {
 #define WHEEL_RADIUS           FP32(0.33f)
 #define VEHICLE_MASS           FP32(1600)
 
-#define WIND_RESISTANCE_MULT   -45
+#define WIND_RESISTANCE_MULT   -35
 #define WIND_RESISTANCE_DIV    100
 #define CONSTANT_RESISTANCE    FP32(-1500)
 #define MAX_GEAR               ((sizeof(g_gearRatios)/sizeof(FP32)) - 1)
@@ -62,9 +62,9 @@ FP32 getGearRatio(int16_t idx) {
     return FP32(&g_gearRatios[idx]);
 }
 
-void Car::initialize(int16_t y) {
-    yPos = y;
+void Car::reset(const FP32& z) {
     xPos = 0;
+    zPos = z;
     engineRPM = 0;
     wheelsRPM = 0;
     speed = 0;
@@ -91,12 +91,11 @@ void Car::shiftGear(bool up = true) {
 }
 
 void Car::draw(SpriteRenderer* renderer) {
-    int32_t x = GetLevel().worldToScreen(xPos);
     GetSprite(SPRITE_CAR)->drawAnimationFrame(renderer, CAR_BODY_ANIM,
-                                              0, x, yPos, 0);
-    wheels.draw(renderer, x - 12, yPos);
-    wheels.draw(renderer, x + 13, yPos);
-    reflection.draw(renderer, x, yPos);
+                                              0, screenX, screenY, 0);
+    wheels.draw(renderer, screenX - 12, screenY);
+    wheels.draw(renderer, screenX + 13, screenY);
+    reflection.draw(renderer, screenX, screenY);
 }
 
 void Car::pedalToTheMetal(bool on) {
@@ -158,6 +157,10 @@ void Car::update(int16_t dt) {
     updateEngine(dt);
     updateWheelsAnim(dt);
     reflection.update(dt >> 1);
+}
+
+int Car::getMaxGear() {
+    return MAX_GEAR;
 }
 
 

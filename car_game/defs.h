@@ -56,11 +56,14 @@ typedef LineT<FP32> Line;
 #define CLAMP_UPPER(x, limit)       (x = (x > limit) ? limit : x)
 #define MPS_TO_KPH(x)               ((x * 36) / 10)
 
-#define PIXELS_TO_M(x)              ((x) * 10)
-#define M_TO_PIXELS(x)              ((x) / 10)
+#define PIXELS_TO_M(x)              ((x) / 10)
+#define M_TO_PIXELS(x)              ((x) * 10)
 
 #define MAIN_FONT_HEIGHT            (7)
 #define MAIN_FONT_SPACE_W           (4)
+
+#define LEVEL_ACTION_AREA_TOP       (48)
+#define LEVEL_ACTION_AREA_BOT       (63)
 
 struct Defs {
     static const FP32 FP_SCR_W;

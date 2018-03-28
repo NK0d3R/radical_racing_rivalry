@@ -5,24 +5,27 @@
 
 #include "stdinc.h"
 #include "ardusprite.h"
-#include "car.h"
+#include "gameobject.h"
 #include "defs.h"
 
 class SpriteRenderer;
 class Sprite;
 
 #define NB_BG_LAYERS    (6)
+#define NB_GAMEOBJECTS  (2)
 
 Level& GetLevel();
 
 class Level {
  public:
     void initialize();
-    void render(SpriteRenderer* renderer);
+    void restart();
+    void draw(SpriteRenderer* renderer);
     void update(int16_t dt,
                 uint8_t buttonsState, uint8_t oldButtonsState);
     void updateControls(uint8_t buttonsState, uint8_t oldButtonsState);
-    int32_t worldToScreen(const FP32& pos);
+    int16_t worldToScreenX(const FP32& x, const FP32& y);
+    int16_t worldToScreenY(const FP32& x, const FP32& y);
     void updateCamera();
 
  private:
@@ -95,11 +98,22 @@ class Level {
         void restart();
         void wait(bool isWaiting);
     };
+
     FP32 cameraPosition;
-    Car mainCar;
 
     BackgroundLayer* bgLayers[NB_BG_LAYERS];
-    void drawLevelBackground(SpriteRenderer* renderer);
+
+    enum ObjectsInvIdx : int8_t {
+        PLAYER_CAR = 0,
+        ENEMY_CAR
+    };
+
+    GameObject*      objectsInventory[NB_GAMEOBJECTS];
+    GameObject*      activeObjects[NB_GAMEOBJECTS];
+    uint8_t          nbActiveObjects;
+    uint8_t          playerCarIdx;
+    uint8_t          enemyCarIdx;
+
     void drawHUD(SpriteRenderer* renderer);
     void drawMainCarHUD(SpriteRenderer* renderer, int16_t x, int16_t y);
 };
