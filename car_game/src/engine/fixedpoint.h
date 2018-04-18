@@ -3,7 +3,7 @@
 #ifndef FIXEDPOINT_H_
 #define FIXEDPOINT_H_
 
-#include "stdinc.h"
+#include "../stdinc.h"
 
 template<typename T, typename T2, int shift>
 struct FPValue {

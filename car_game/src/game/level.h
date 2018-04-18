@@ -3,10 +3,10 @@
 #ifndef LEVEL_H_
 #define LEVEL_H_
 
-#include "stdinc.h"
-#include "ardusprite.h"
+#include "../stdinc.h"
+#include "../defs.h"
+#include "../engine/ardusprite.h"
 #include "gameobject.h"
-#include "defs.h"
 
 class SpriteRenderer;
 class Sprite;

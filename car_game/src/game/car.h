@@ -3,18 +3,19 @@
 #ifndef CAR_H_
 #define CAR_H_
 
-#include "stdinc.h"
-#include "defs.h"
-#include "ardusprite.h"
-#include "sprites.h"
+#include "../stdinc.h"
+#include "../defs.h"
 #include "gameobject.h"
+#include "../res/sprites.h"
+#include "../engine/ardusprite.h"
 
 class SpriteRenderer;
 class Level;
 class Car : public GameObject {
  public:
     Car(Level* p, FP32 initialX, FP32 initialY, uint8_t scrW) :
-        GameObject(p, initialX, initialY, scrW) {}
+        GameObject(p, initialX, initialY, scrW) {
+    }
     virtual void reset(const FP32& z);
     virtual void draw(SpriteRenderer* renderer);
     virtual void update(int16_t dt);

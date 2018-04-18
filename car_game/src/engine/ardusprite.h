@@ -3,7 +3,7 @@
 #ifndef ARDUSPRITE_H_
 #define ARDUSPRITE_H_
 
-#include "stdinc.h"
+#include "../stdinc.h"
 
 #define INVALID_ANIM  (0xFF)
 #define INVALID_FRAME (0xFF)

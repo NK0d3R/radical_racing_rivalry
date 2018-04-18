@@ -1,10 +1,10 @@
 // Copyright 2018 Catalin G. Manciu
 
 #include "level.h"
-#include "renderer.h"
-#include "sprites.h"
 #include "car.h"
 #include "enemycar.h"
+#include "../engine/renderer.h"
+#include "../res/sprites.h"
 
 int16_t Level::BackgroundLayer::camPosToOffset(const FP32& cameraPosition) {
     return -(M_TO_PIXELS((cameraPosition * offsetFactor) / 1000).getInt());

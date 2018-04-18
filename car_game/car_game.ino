@@ -1,15 +1,15 @@
 // Copyright 2018 Catalin G. Manciu
 
-#include "stdinc.h"
-#include "defs.h"
-#include "ardusprite.h"
-#include "renderer.h"
-#include "level.h"
-#include "sprites.h"
-#include "env_sprite.h"
-#include "car_sprite.h"
-#include "font.h"
-#include "fontmap.h"
+#include "src/stdinc.h"
+#include "src/defs.h"
+#include "src/engine/ardusprite.h"
+#include "src/engine/renderer.h"
+#include "src/game/level.h"
+#include "src/res/sprites.h"
+#include "src/res/env_sprite.h"
+#include "src/res/car_sprite.h"
+#include "src/res/font.h"
+#include "src/res/fontmap.h"
 
 Arduboy app;
 uint8_t         buttonsState;
@@ -22,7 +22,7 @@ Level& GetLevel() {
 }
 
 void setup() {
-    app.begin();
+    app.beginNoLogo();
     app.setFrameRate(30);
     app.clear();
 
@@ -51,7 +51,6 @@ void loop() {
 
     lvl.update(33, buttonsState, oldButtonsState);
     lvl.draw(&renderer);
-
     app.display();
 }
 

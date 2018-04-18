@@ -3,7 +3,7 @@
 #ifndef PRIMITIVES_H_
 #define PRIMITIVES_H_
 
-#include "stdinc.h"
+#include "../stdinc.h"
 
 template <typename T> struct LineT;
 template <typename T> struct VectorT;
@@ -35,7 +35,10 @@ struct Rect {
 
     bool isEmpty() const { return (w == 0 || h == 0); }
     void clip(const Rect& other);
-
+    bool coordsInside(int16_t px, int16_t py) {
+        return (px >= x && px <= maxX &&
+                py >= y && py <= maxY);
+    }
     template <typename T>
     void clipLineX(LineT<T>* line) {
 #define OUTSIDE_LEFT        (1)

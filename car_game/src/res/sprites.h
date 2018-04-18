@@ -3,7 +3,7 @@
 #ifndef SPRITES_H_
 #define SPRITES_H_
 
-#include "stdinc.h"
+#include "../stdinc.h"
 
 class Sprite;
 class Font;

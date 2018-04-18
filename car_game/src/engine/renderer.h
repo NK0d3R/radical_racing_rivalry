@@ -3,8 +3,8 @@
 #ifndef RENDERER_H_
 #define RENDERER_H_
 
-#include "stdinc.h"
-#include "defs.h"
+#include "../stdinc.h"
+#include "../defs.h"
 #include "ardusprite.h"
 
 #define BUFFER_CAPACITY     (128)
@@ -29,7 +29,7 @@ class SpriteRenderer {
     void setClip(int16_t x, int16_t y, int16_t w, int16_t h);
     inline Rect& getClip() { return clip; }
     void drawLine(int16_t xStart, int16_t yStart,
-                    int16_t xEnd, int16_t yEnd);
+                  int16_t xEnd, int16_t yEnd);
     void putPixel(int16_t x, int16_t y);
     void drawSpriteData(uint8_t* spriteData, int16_t targetX,
                         int16_t targetY, uint8_t width,

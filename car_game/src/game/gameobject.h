@@ -3,7 +3,7 @@
 #ifndef GAMEOBJECT_H_
 #define GAMEOBJECT_H_
 
-#include "defs.h"
+#include "../defs.h"
 
 class Level;
 class SpriteRenderer;

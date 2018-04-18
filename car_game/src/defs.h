@@ -3,8 +3,8 @@
 #ifndef DEFS_H_
 #define DEFS_H_
 
-#include "primitives.h"
-#include "fixedpoint.h"
+#include "engine/primitives.h"
+#include "engine/fixedpoint.h"
 
 typedef FPValue<int32_t, int64_t, 8> FP32;
 typedef VectorT<FP32> Vector;
@@ -20,8 +20,9 @@ typedef LineT<FP32> Line;
 #define CAR_BODY_ANIM       (0)
 #define CAR_WHEELS_ANIM     (1)
 #define CAR_REFLECTION_ANIM (2)
-#define CAR_RPM_HUD         (3)
-#define CAR_SPEED_FONT      (4)
+#define CAR_EXPLOSION_ANIM  (3)
+#define CAR_RPM_HUD         (4)
+#define CAR_SPEED_FONT      (5)
 
 #define HUD_FRAME_RPM       (0)
 #define HUD_FRAME_RPM_BAR   (1)

@@ -1,10 +1,10 @@
 // Copyright 2018 Catalin G. Manciu
 
-#include "defs.h"
+#include "../defs.h"
 #include "car.h"
-#include "sprites.h"
-#include "renderer.h"
 #include "level.h"
+#include "../res/sprites.h"
+#include "../engine/renderer.h"
 
 // Torque (in Nm)
 constexpr FP32 g_torques[] PROGMEM = {

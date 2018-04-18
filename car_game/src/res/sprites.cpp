@@ -1,8 +1,8 @@
 // Copyright 2018 Catalin G. Manciu
 
 #include "sprites.h"
-#include "ardusprite.h"
-#include "defs.h"
+#include "../engine/ardusprite.h"
+#include "../defs.h"
 
 Sprite sprites[NB_SPRITES];
 Font fonts[NB_FONTS];
