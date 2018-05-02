@@ -6,6 +6,7 @@
 #include "../stdinc.h"
 #include "../defs.h"
 #include "../engine/ardusprite.h"
+#include "gearshift.h"
 #include "gameobject.h"
 
 class SpriteRenderer;
@@ -108,11 +109,14 @@ class Level {
         ENEMY_CAR
     };
 
-    GameObject*      objectsInventory[NB_GAMEOBJECTS];
-    GameObject*      activeObjects[NB_GAMEOBJECTS];
-    uint8_t          nbActiveObjects;
-    uint8_t          playerCarIdx;
-    uint8_t          enemyCarIdx;
+    GearShiftAuto   autoGearShift;
+    GearShiftManual manualGearShift;
+    GearShift*      currentGearShift;
+    GameObject*     objectsInventory[NB_GAMEOBJECTS];
+    GameObject*     activeObjects[NB_GAMEOBJECTS];
+    uint8_t         nbActiveObjects;
+    uint8_t         playerCarIdx;
+    uint8_t         enemyCarIdx;
 
     void drawHUD(SpriteRenderer* renderer);
     void drawMainCarHUD(SpriteRenderer* renderer, int16_t x, int16_t y);

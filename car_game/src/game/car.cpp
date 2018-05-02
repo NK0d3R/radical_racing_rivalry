@@ -36,25 +36,24 @@ constexpr FP32 g_gearRatios[] PROGMEM = {
 #define WIND_RESISTANCE_MULT   -35
 #define WIND_RESISTANCE_DIV    100
 #define CONSTANT_RESISTANCE    FP32(-1500)
-#define MAX_GEAR               ((sizeof(g_gearRatios)/sizeof(FP32)) - 1)
 
 FP32 RPM2Torque(const FP32& rpm) {
     if (rpm < Defs::MIN_RPM) {
-        return g_torques[0];
+        return FP32(static_cast<const void*>(&g_torques[0]));
     } else if (rpm > Defs::MAX_RPM) {
         return FP32(0);
     }
     int32_t rpmI = rpm.getInt();
     int32_t idx = (rpmI / 1000);
     if (idx == (NB_TORQUES - 1)) {
-        return FP32(&g_torques[idx]);
+        return FP32(static_cast<const void*>(&g_torques[idx]));
     }
     int32_t rpmOver = rpmI - (idx * 1000);
     if (rpmOver == 0) {
-        return FP32(&g_torques[idx]);
+        return FP32(static_cast<const void*>(&g_torques[idx]));
     }
-    FP32 tStart(&g_torques[idx]);
-    FP32 tEnd(&g_torques[idx + 1]);
+    FP32 tStart(static_cast<const void*>(&g_torques[idx]));
+    FP32 tEnd(static_cast<const void*>(&g_torques[idx + 1]));
     return tStart + (((tEnd - tStart) * rpmOver) / 1000);
 }
 

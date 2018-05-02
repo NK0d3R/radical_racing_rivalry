@@ -17,6 +17,20 @@ uint8_t SpriteRenderer::leftMask(uint8_t nbBits) {
     return pgm_read_byte(&leftMasks[nbBits]);
 }
 
+uint8_t SpriteRenderer::rightMask(uint8_t nbBits) {
+    static const uint8_t rightMasks[] PROGMEM = {
+        0xff,
+        0x7f,
+        0x3f,
+        0x1f,
+        0x0f,
+        0x07,
+        0x03,
+        0x01
+    };
+    return pgm_read_byte(&rightMasks[nbBits]);
+}
+
 uint8_t SpriteRenderer::bitReverse(uint8_t byte) {
     static const uint8_t reversedBits[] PROGMEM = {
         0x00, 0x08, 0x04, 0x0C, 0x02, 0x0A, 0x06, 0x0E,
@@ -82,7 +96,7 @@ void SpriteRenderer::drawSpriteData1Bit(uint8_t* spriteData, uint8_t srcX,
     uint16_t srcRowStartByte;
     uint8_t  srcBit;
     int16_t  srcRowIncr;
-
+    uint8_t  availBits;
     uint16_t destOffset;
 
     uint8_t toShift;
@@ -133,6 +147,7 @@ void SpriteRenderer::drawSpriteData1Bit(uint8_t* spriteData, uint8_t srcX,
             pixWritten = (8 - srcBit);
         }
 
+        pixWritten = MIN(pixWritten, height);
         destOffset = destRowStartByte;
 
         for (xOffset = xOffsetStart, colsToWrite = width;
@@ -144,6 +159,9 @@ void SpriteRenderer::drawSpriteData1Bit(uint8_t* spriteData, uint8_t srcX,
                 currentMask = bitReverse(currentMask);
             }
             currentMask &= leftMask(srcBit);
+            if (srcBit + pixWritten < 8) {
+                currentMask &= rightMask(8 - (srcBit + pixWritten));
+            }
             if (toShift != 0) {
                 if (shiftLeft) {
                     currentMask <<= toShift;

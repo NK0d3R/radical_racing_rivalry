@@ -23,12 +23,21 @@ typedef LineT<FP32> Line;
 #define CAR_EXPLOSION_ANIM  (3)
 #define CAR_RPM_HUD         (4)
 #define CAR_SPEED_FONT      (5)
+#define CAR_GEARS_AUTO      (6)
+#define CAR_GEARS_MANUAL    (7)
 
 #define HUD_FRAME_RPM       (0)
 #define HUD_FRAME_RPM_BAR   (1)
 #define HUD_FRAME_KPH       (2)
 #define HUD_FRAME_MPH       (3)
 #define HUD_FRAME_WARNING   (4)
+
+#define HUD_GEARS_M_UP      (6)
+#define HUD_GEARS_M_DOWN    (7)
+#define HUD_GEARS_M_BG      (8)
+
+#define HUD_GEARS_A_BG      (0)
+#define HUD_GEARS_A_STICK   (1)
 
 #define BG_CHOPPER_MARGIN_OFFSET    (15)
 #define BG_CHOPPER_WAIT_TIME_MIN    (3000)
@@ -56,7 +65,7 @@ typedef LineT<FP32> Line;
 #define CLAMP_LOWER(x, limit)       (x = (x < limit) ? limit : x)
 #define CLAMP_UPPER(x, limit)       (x = (x > limit) ? limit : x)
 #define MPS_TO_KPH(x)               ((x * 36) / 10)
-
+#define MIN(x, y)                   ((x) < (y) ? (x) : (y))
 #define PIXELS_TO_M(x)              ((x) / 10)
 #define M_TO_PIXELS(x)              ((x) * 10)
 
@@ -65,6 +74,8 @@ typedef LineT<FP32> Line;
 
 #define LEVEL_ACTION_AREA_TOP       (48)
 #define LEVEL_ACTION_AREA_BOT       (63)
+
+#define MAX_GEAR                    (5)
 
 struct Defs {
     static const FP32 FP_SCR_W;

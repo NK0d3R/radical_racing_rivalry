@@ -184,6 +184,8 @@ void Level::restart() {
     activeObjects[nbActiveObjects ++] = objectsInventory[ENEMY_CAR];
     playerCarIdx = nbActiveObjects;
     activeObjects[nbActiveObjects ++] = objectsInventory[PLAYER_CAR];
+    currentGearShift = static_cast<GearShift*>(&autoGearShift);
+    currentGearShift->reset();
     static_cast<Car*>(activeObjects[playerCarIdx])->reset(FP32(0.8));
     static_cast<Car*>(activeObjects[playerCarIdx])->updateScreenY();
     static_cast<Car*>(activeObjects[enemyCarIdx])->reset(FP32(0.2));
@@ -251,7 +253,12 @@ void Level::drawMainCarHUD(SpriteRenderer* renderer, int16_t x, int16_t y) {
 }
 
 void Level::drawHUD(SpriteRenderer* renderer) {
-    drawMainCarHUD(renderer, 94, 64);
+    Car& mainCar = *static_cast<Car*>(activeObjects[playerCarIdx]);
+    if (mainCar.isClutched()) {
+        currentGearShift->draw(renderer, 110, 52);
+    } else {
+        drawMainCarHUD(renderer, 94, 64);
+    }
 }
 
 void Level::updateControls(uint8_t buttonsState, uint8_t oldButtonsState) {
@@ -261,10 +268,21 @@ void Level::updateControls(uint8_t buttonsState, uint8_t oldButtonsState) {
     mainCar.setClutch(buttonsState & B_BUTTON);
     if (mainCar.isClutched()) {
         if ((changedButtons & buttonsState & UP_BUTTON)) {
-            mainCar.shiftGear(true);
+            currentGearShift->onUp();
         }
         if ((changedButtons & buttonsState & DOWN_BUTTON)) {
-            mainCar.shiftGear(false);
+            currentGearShift->onDown();
+        }
+        if ((changedButtons & buttonsState & LEFT_BUTTON)) {
+            currentGearShift->onLeft();
+        }
+        if ((changedButtons & buttonsState & RIGHT_BUTTON)) {
+            currentGearShift->onRight();
+        }
+    } else if (changedButtons & B_BUTTON) {
+        int8_t shiftResult = currentGearShift->getShiftResult();
+        if (shiftResult != -1) {
+            mainCar.shiftGear(shiftResult);
         }
     }
     uint8_t resetMask = (A_BUTTON | B_BUTTON | LEFT_BUTTON);
@@ -274,6 +292,7 @@ void Level::updateControls(uint8_t buttonsState, uint8_t oldButtonsState) {
 }
 void Level::update(int16_t dt,
                    uint8_t buttonsState, uint8_t oldButtonsState) {
+    Car& mainCar = *static_cast<Car*>(activeObjects[playerCarIdx]);
     updateControls(buttonsState, oldButtonsState);
     for (uint8_t idx = 0; idx < nbActiveObjects; ++idx) {
         activeObjects[idx]->update(dt);
@@ -284,6 +303,9 @@ void Level::update(int16_t dt,
     }
     for (auto layer : bgLayers) {
         layer->update(dt);
+    }
+    if (mainCar.isClutched()) {
+        currentGearShift->update();
     }
 }
 

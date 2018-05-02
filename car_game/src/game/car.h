@@ -23,6 +23,7 @@ class Car : public GameObject {
     FP32& getSpeed()                    { return speed; }
     int8_t getGear()                    { return gear; }
     void shiftGear(bool up = true);
+    void shiftGear(int8_t newGear)      { gear = newGear; }
     void pedalToTheMetal(bool on);
     void setClutch(bool on)             { clutch = on; }
     bool isClutched()                   { return clutch; }

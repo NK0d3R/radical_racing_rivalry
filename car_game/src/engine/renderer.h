@@ -41,6 +41,7 @@ class SpriteRenderer {
                             uint8_t initialHeight, uint8_t flags);
     inline uint8_t bitReverse(uint8_t byte);
     inline uint8_t leftMask(uint8_t nbBits);
+    inline uint8_t rightMask(uint8_t nbBits);
 };
 
 #endif  // RENDERER_H_
