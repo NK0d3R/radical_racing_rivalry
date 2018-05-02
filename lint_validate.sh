@@ -19,16 +19,16 @@ for srcdir in $SRC_FOLDERS; do
             python $GOOGLE_LINT --root="$srcdir"                    \
                     --repository="$srcdir" --filter=-build/include  \
                     $filename
-            if [ $? == 0 ]; then
+            if [ $? = 0 ]; then
                 echo File is OK !
                 break
             else
                 echo "Errors found ! (r)etry (n)ext (q)uit"
                 read res
-                if [ $res == "n" ]; then
+                if [ $res = "n" ]; then
                     break
                 fi
-                if [ $res == "q" ]; then
+                if [ $res = "q" ]; then
                     exit 255
                 fi
             fi
