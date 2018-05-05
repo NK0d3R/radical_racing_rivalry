@@ -49,7 +49,8 @@ void loop() {
     oldButtonsState = buttonsState;
     buttonsState = app.buttonsState();
 
-    lvl.update(33, buttonsState, oldButtonsState);
+    lvl.updateControls(buttonsState, oldButtonsState);
+    lvl.update(33);
     lvl.draw(&renderer);
     app.display();
 }

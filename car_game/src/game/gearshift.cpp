@@ -87,12 +87,12 @@ void GearShiftManual::reset() {
 }
 
 void GearShiftManual::getNextPosition(ShiftState direction,
-                                      int8_t& x, int8_t& y) {
+                                      int8_t* x, int8_t* y) {
     switch (direction) {
-        case Left:  x--; break;
-        case Right: x++; break;
-        case Up:    y--; break;
-        case Down:  y++; break;
+        case Left:  *x--; break;
+        case Right: *x++; break;
+        case Up:    *y--; break;
+        case Down:  *y++; break;
     }
 }
 
@@ -110,7 +110,7 @@ bool GearShiftManual::canGoDirection(ShiftState direction) {
     if (currentY != 1 && (direction == Left || direction == Right)) {
         return false;
     }
-    getNextPosition(direction, newX, newY);
+    getNextPosition(direction, &newX, &newY);
     if (newX < 0 || newX > 2 || newY < 0 || newY > 2 ||
         getGearAtPosition(newX, newY) == 7) {
             return false;
@@ -134,7 +134,7 @@ void GearShiftManual::update() {
         currentOffset += offIncr;
         if (currentOffset >= targetOffset) {
             currentOffset = 0;
-            getNextPosition(state, currentX, currentY);
+            getNextPosition(state, &currentX, &currentY);
             state = Idle;
         }
     }

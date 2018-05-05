@@ -22,12 +22,12 @@ class Level {
     void initialize();
     void restart();
     void draw(SpriteRenderer* renderer);
-    void update(int16_t dt,
-                uint8_t buttonsState, uint8_t oldButtonsState);
-    void updateControls(uint8_t buttonsState, uint8_t oldButtonsState);
+    void update(int16_t dt);
     int16_t worldToScreenX(const FP32& x, const FP32& y);
     int16_t worldToScreenY(const FP32& x, const FP32& y);
-    void updateCamera();
+    void updateControls(uint8_t buttonsState, uint8_t oldButtonsState);
+    void raceStart();
+    void raceEnd();
 
  private:
     class BackgroundLayer {
@@ -109,17 +109,33 @@ class Level {
         ENEMY_CAR
     };
 
+    enum LevelState : uint8_t {
+        Countdown,
+        Race,
+        Result
+    };
+
+    LevelState      state;
+
     GearShiftAuto   autoGearShift;
     GearShiftManual manualGearShift;
     GearShift*      currentGearShift;
     GameObject*     objectsInventory[NB_GAMEOBJECTS];
     GameObject*     activeObjects[NB_GAMEOBJECTS];
+
+    SpriteAnimator  screenAnim;
+    bool            showScreenAnim;
     uint8_t         nbActiveObjects;
     uint8_t         playerCarIdx;
     uint8_t         enemyCarIdx;
 
+    int32_t         levelTimer;
+
     void drawHUD(SpriteRenderer* renderer);
     void drawMainCarHUD(SpriteRenderer* renderer, int16_t x, int16_t y);
+    inline void updateState(int16_t dt);
+    inline void updateGeneral(int16_t dt);
+    inline void updateCamera();
 };
 
 #endif  // LEVEL_H_

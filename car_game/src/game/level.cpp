@@ -174,11 +174,12 @@ void Level::initialize() {
     objectsInventory[PLAYER_CAR] = new Car(this, 0, FP32(0.0f), 43);
     objectsInventory[ENEMY_CAR] = new EnemyCar(this, 0, FP32(0.0f), 43);
 
+    screenAnim.init(GetSprite(SPRITE_CAR));
     restart();
 }
 
 void Level::restart() {
-    cameraPosition = 0;
+    cameraPosition = -100;
     nbActiveObjects = 0;
     enemyCarIdx = nbActiveObjects;
     activeObjects[nbActiveObjects ++] = objectsInventory[ENEMY_CAR];
@@ -190,6 +191,10 @@ void Level::restart() {
     static_cast<Car*>(activeObjects[playerCarIdx])->updateScreenY();
     static_cast<Car*>(activeObjects[enemyCarIdx])->reset(FP32(0.2));
     static_cast<Car*>(activeObjects[enemyCarIdx])->updateScreenY();
+    levelTimer = 0;
+    showScreenAnim = true;
+    screenAnim.setAnimation(CAR_COUNTDOWN_ANIM, 0, false);
+    state = Countdown;
 }
 
 void Level::draw(SpriteRenderer* renderer) {
@@ -202,7 +207,14 @@ void Level::draw(SpriteRenderer* renderer) {
             activeObjects[idx]->draw(renderer);
         }
     }
-    drawHUD(renderer);
+
+    if (state == Race) {
+        drawHUD(renderer);
+    }
+
+    if (showScreenAnim) {
+        screenAnim.draw(renderer, SCREEN_W / 2, SCREEN_H / 2);
+    }
 }
 
 #define DEBUG_ENEMY_SPEED   (1)
@@ -230,7 +242,7 @@ void Level::drawMainCarHUD(SpriteRenderer* renderer, int16_t x, int16_t y) {
     int16_t crtY = y - 5;
 #if DEBUG_ENEMY_SPEED
     int32_t speed = MPS_TO_KPH(mainCar.getSpeed()).getInt() * 1000 +
-                     MPS_TO_KPH(enemyCar.getSpeed()).getInt();
+                    MPS_TO_KPH(enemyCar.getSpeed()).getInt();
 #else
     int32_t speed = MPS_TO_KPH(mainCar.getSpeed()).getInt();
 #endif
@@ -290,10 +302,46 @@ void Level::updateControls(uint8_t buttonsState, uint8_t oldButtonsState) {
         restart();
     }
 }
-void Level::update(int16_t dt,
-                   uint8_t buttonsState, uint8_t oldButtonsState) {
+
+void Level::update(int16_t dt) {
+    updateState(dt);
+    updateGeneral(dt);
+}
+
+void Level::updateState(int16_t dt) {
     Car& mainCar = *static_cast<Car*>(activeObjects[playerCarIdx]);
-    updateControls(buttonsState, oldButtonsState);
+    switch (state) {
+        case Countdown:
+            screenAnim.update(dt);
+            if (screenAnim.animPlaying() == false) {
+                raceStart();
+            }
+        break;
+        case Race:
+            if (mainCar.isClutched()) {
+                currentGearShift->update();
+            }
+            if (showScreenAnim && mainCar.getSpeed() > 0) {
+                showScreenAnim = false;
+            }
+        break;
+    }
+}
+
+void Level::raceStart() {
+    for (uint8_t idx = 0; idx < nbActiveObjects; ++idx) {
+        activeObjects[idx]->onRaceStart();
+    }
+    state = Race;
+}
+
+void Level::raceEnd() {
+    for (uint8_t idx = 0; idx < nbActiveObjects; ++idx) {
+        activeObjects[idx]->onRaceEnd();
+    }
+}
+
+void Level::updateGeneral(int16_t dt) {
     for (uint8_t idx = 0; idx < nbActiveObjects; ++idx) {
         activeObjects[idx]->update(dt);
     }
@@ -303,9 +351,6 @@ void Level::update(int16_t dt,
     }
     for (auto layer : bgLayers) {
         layer->update(dt);
-    }
-    if (mainCar.isClutched()) {
-        currentGearShift->update();
     }
 }
 

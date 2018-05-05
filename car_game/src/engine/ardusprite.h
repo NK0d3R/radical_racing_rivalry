@@ -98,6 +98,7 @@ class SpriteAnimator {
     void setAnimation(uint8_t animation, uint8_t flags, bool loop);
     bool update(uint16_t dt);
     void draw(SpriteRenderer* renderer, int16_t posX, int16_t posY);
+    bool animPlaying() { return isPlaying; }
 }__attribute__((__packed__));
 
 #endif  // ARDUSPRITE_H_

@@ -5,20 +5,22 @@
 
 #include "car.h"
 
-class EnemyCar : public Car {
+class EnemyCar final : public Car {
  public:
     EnemyCar(Level* p, FP32 initialX, FP32 initialY, uint8_t scrW) :
         Car(p, initialX, initialY, scrW) {}
     virtual void reset(const FP32& z);
     virtual void update(int16_t dt);
+    virtual void onRaceStart();
  private:
     int16_t stateTimer;
     int16_t gearShiftRPM;
 
     enum AIState : uint8_t {
-        INVALID,
-        SWITCHING_GEARS,
-        ACCELERATING
+        Invalid,
+        Wait,
+        SwitchingGears,
+        Accelerating
     };
 
     AIState state;

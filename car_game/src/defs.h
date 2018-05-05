@@ -25,6 +25,7 @@ typedef LineT<FP32> Line;
 #define CAR_SPEED_FONT      (5)
 #define CAR_GEARS_AUTO      (6)
 #define CAR_GEARS_MANUAL    (7)
+#define CAR_COUNTDOWN_ANIM  (8)
 
 #define HUD_FRAME_RPM       (0)
 #define HUD_FRAME_RPM_BAR   (1)

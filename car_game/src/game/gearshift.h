@@ -67,7 +67,7 @@ class GearShiftManual final : public GearShift {
     int8_t getGearAtPosition(int8_t x, int8_t y);
     bool canGoDirection(ShiftState direction);
     void tryGoDirection(ShiftState direction);
-    void getNextPosition(ShiftState direction, int8_t& x, int8_t& y);
+    void getNextPosition(ShiftState direction, int8_t* x, int8_t* y);
 
  public:
     virtual int8_t getShiftResult() {

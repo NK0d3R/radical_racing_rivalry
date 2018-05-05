@@ -29,6 +29,8 @@ class GameObject {
     FP32& getZ()            { return zPos; }
     virtual void update(int16_t dt) = 0;
     virtual void draw(SpriteRenderer* renderer) = 0;
+    virtual void onRaceStart() {}
+    virtual void onRaceEnd() {}
 };
 
 #endif  // GAMEOBJECT_H_
