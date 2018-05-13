@@ -210,13 +210,14 @@ public:
 protected:
   unsigned char sBuffer[(HEIGHT*WIDTH)/8];
 
-
+#if USE_BUILTIN_FONT_SYSTEM
 // Adafruit stuff
 protected:
   int16_t cursor_x;
   int16_t cursor_y;
   uint8_t textsize;
   boolean wrap; // If set, 'wrap' text at right edge of display
+#endif
 };
 
 #endif

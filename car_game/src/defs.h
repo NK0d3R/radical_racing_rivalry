@@ -10,12 +10,22 @@ typedef FPValue<int32_t, int64_t, 8> FP32;
 typedef VectorT<FP32> Vector;
 typedef LineT<FP32> Line;
 
+int32_t getFrameCounter();
+
+enum AppState {
+    MainMenu,
+    Ingame
+};
+
+void setAppState(AppState newState);
+
 #define SCREEN_W    128
 #define SCREEN_H    64
 
 #define SPRITE_ENV      (0)
 #define SPRITE_CAR      (1)
-#define NB_SPRITES      (2)
+#define SPRITE_MENU     (2)
+#define NB_SPRITES      (3)
 
 #define CAR_BODY_ANIM       (0)
 #define CAR_WHEELS_ANIM     (1)
@@ -39,6 +49,14 @@ typedef LineT<FP32> Line;
 
 #define HUD_GEARS_A_BG      (0)
 #define HUD_GEARS_A_STICK   (1)
+
+#define MENU_ELEMS_ANIM     (0)
+#define MENU_BG_FRAME       (0)
+#define MENU_ARROW_R_FRAME  (2)
+#define MENU_ARROW_L_FRAME  (3)
+#define MENU_MAIN_ANIM      (1)
+
+#define ACTION_START_GAME   (1)
 
 #define BG_CHOPPER_MARGIN_OFFSET    (15)
 #define BG_CHOPPER_WAIT_TIME_MIN    (3000)

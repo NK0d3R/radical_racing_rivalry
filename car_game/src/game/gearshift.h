@@ -26,7 +26,6 @@ class GearShiftAuto final : public GearShift {
  private:
     int8_t currentGear;
     int8_t scrollAmount;
-    uint8_t frameCounter;
 
     enum ShiftState : int8_t {
         Idle = 0,

@@ -23,6 +23,10 @@
 
 class SpriteRenderer;
 
+inline constexpr uint8_t invertBits(uint8_t value, uint8_t mask) {
+    return ((~value) & mask) | (value & (~mask));
+}
+
 struct SpriteElement {
     uint8_t     width;
     uint8_t     height;

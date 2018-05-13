@@ -12,13 +12,11 @@
 
 void GearShiftAuto::reset() {
     scrollAmount = 0;
-    frameCounter = 0;
     currentGear = 0;
     state = Idle;
 }
 
 void GearShiftAuto::update() {
-    frameCounter++;
     if (state != Idle) {
         scrollAmount += GEAR_SCROLL_PER_FRAME;
         if (scrollAmount >= GEAR_DISPL_H) {
@@ -30,7 +28,7 @@ void GearShiftAuto::update() {
 }
 
 void GearShiftAuto::draw(SpriteRenderer* renderer, int16_t x, int16_t y) {
-    int8_t arrowOffset = (frameCounter >> 1) & 0x3;
+    int8_t arrowOffset = (getFrameCounter() >> 1) & 0x3;
     Sprite* car = GetSprite(SPRITE_CAR);
     car->drawAnimationFrame(renderer, CAR_GEARS_AUTO, HUD_GEARS_M_BG, x, y, 0);
     if (currentGear < MAX_GEAR) {

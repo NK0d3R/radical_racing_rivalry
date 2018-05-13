@@ -15,8 +15,6 @@ class Sprite;
 #define NB_BG_LAYERS    (6)
 #define NB_GAMEOBJECTS  (2)
 
-Level& GetLevel();
-
 class Level {
  public:
     void initialize();

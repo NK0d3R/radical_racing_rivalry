@@ -61,7 +61,8 @@ void Sprite::drawAnimationFrame(SpriteRenderer* renderer,
              &animFrames[currentAnim.framesStart + frame],
              sizeof(SpriteAnimFrame));
 
-    int16_t elem_pos_x;
+    int16_t elemPosX;
+    int16_t elemPosY;
     uint8_t elemFlags;
 
     for (int idx = 0; idx < currentFrame.elemsNb; ++idx) {
@@ -72,21 +73,28 @@ void Sprite::drawAnimationFrame(SpriteRenderer* renderer,
                  &frameElems[currentFrame.frameElemsStart + idx],
                  sizeof(SpriteFrameElement));
 
-        elem_pos_x = (int16_t)currentFrameElem.posX;
+        elemPosX = (int16_t)currentFrameElem.posX;
+        elemPosY = (int16_t)currentFrameElem.posY;
+
         elemFlags = currentFrameElem.flags;
         memcpy_P(&currentElem, &elements[currentFrameElem.elementIdx],
                  sizeof(SpriteElement));
 
         if (flags & ARD_FLAGS_FLIP_X) {
           uint8_t elem_width = currentElem.width;
-          elem_pos_x = -elem_pos_x - elem_width + 1;
-          elemFlags = ( ((~elemFlags) & ARD_FLAGS_FLIP_X) |
-                          (elemFlags & (~ARD_FLAGS_FLIP_X)) );
+          elemPosX = -elemPosX - elem_width + 1;
+          elemFlags = invertBits(elemFlags, ARD_FLAGS_FLIP_X);
+        }
+
+        if (flags & ARD_FLAGS_FLIP_Y) {
+          uint8_t elem_height = currentElem.height;
+          elemPosY = -elemPosY - elem_height + 1;
+          elemFlags = invertBits(elemFlags, ARD_FLAGS_FLIP_Y);
         }
 
         drawElement(renderer, currentElem,
-                    posX + elem_pos_x, posY +
-                    (int16_t)currentFrameElem.posY,
+                    posX + elemPosX,
+                    posY + elemPosY,
                     elemFlags);
     }
 }

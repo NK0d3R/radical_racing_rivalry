@@ -19,10 +19,12 @@ Arduboy::Arduboy()
   // lastFrameStart
   // lastFrameDurationMs
 
+#if USE_BUILTIN_FONT_SYSTEM
   // font rendering  
   cursor_x = 0;
   cursor_y = 0;
   textsize = 1;
+#endif
 }
 
 void Arduboy::start() // deprecated
