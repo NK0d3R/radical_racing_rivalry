@@ -42,9 +42,11 @@ void Arduboy::begin()
 #endif
 
   // Audio
+#if ENABLE_AUDIO
   tunes.initChannel(PIN_SPEAKER_1);
   tunes.initChannel(PIN_SPEAKER_2);
   audio.begin();
+#endif
 }
 
 // this is pusposely duplicated (without logo) so that
@@ -56,9 +58,11 @@ void Arduboy::beginNoLogo()
   bootUtils();
 
   // Audio
+#if ENABLE_AUDIO
   tunes.initChannel(PIN_SPEAKER_1);
   tunes.initChannel(PIN_SPEAKER_2);
   audio.begin();
+#endif
 }
 
 void Arduboy::bootUtils()

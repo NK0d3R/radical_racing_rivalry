@@ -24,7 +24,9 @@
 #define EEPROM_STORAGE_SPACE_START 16 // and onward
 
 // eeprom settings above are neded for audio
+#if ENABLE_AUDIO
 #include "audio/audio.h"
+#endif
 
 #define PIXEL_SAFE_MODE
 
@@ -181,8 +183,10 @@ public:
   /// Swap the references of two pointers.
   void swap(int16_t& a, int16_t& b);
 
+#if ENABLE_AUDIO
   ArduboyTunes tunes;
   ArduboyAudio audio;
+#endif
 
   void setFrameRate(uint8_t rate);
   bool nextFrame();
