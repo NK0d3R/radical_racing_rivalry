@@ -13,11 +13,13 @@ typedef LineT<FP32> Line;
 int32_t getFrameCounter();
 
 enum AppState {
+    Invalid,
     MainMenu,
     Ingame
 };
 
 void setAppState(AppState newState);
+void fastGetDigits(uint16_t value, char* str, uint16_t nbDigits);
 
 #define SCREEN_W    128
 #define SCREEN_H    64

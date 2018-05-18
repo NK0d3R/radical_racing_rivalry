@@ -24,6 +24,11 @@ class GearShift {
 
 class GearShiftAuto final : public GearShift {
  private:
+    static constexpr int8_t GearDisplW = 8;
+    static constexpr int8_t GearDisplH = 7;
+    static constexpr int8_t GearScrollFrames = 3;
+    static constexpr int8_t GearScrollPerFrame = (GearDisplH /
+                                                  GearScrollFrames);
     int8_t currentGear;
     int8_t scrollAmount;
 
@@ -34,9 +39,9 @@ class GearShiftAuto final : public GearShift {
     };
 
     ShiftState state;
+
  public:
     virtual int8_t getShiftResult() { return state == Idle ? currentGear : -1; }
-
     virtual void onUp();
     virtual void onDown();
     virtual void onLeft()  {}
@@ -49,11 +54,17 @@ class GearShiftAuto final : public GearShift {
 
 class GearShiftManual final : public GearShift {
  private:
+    static constexpr int8_t StickMovePerFrameH = 2;
+    static constexpr int8_t StickMovePerFrameV = 2;
+    static constexpr int8_t StickHStep = 6;
+    static constexpr int8_t StickVStep = 5;
+
     int8_t currentGear;
     int8_t currentX;
     int8_t currentY;
     int8_t currentOffset;
     int8_t targetOffset;
+
     enum ShiftState : int8_t {
         Idle = 0,
         Left,
@@ -63,6 +74,7 @@ class GearShiftManual final : public GearShift {
     };
 
     ShiftState state;
+
     int8_t getGearAtPosition(int8_t x, int8_t y);
     bool canGoDirection(ShiftState direction);
     void tryGoDirection(ShiftState direction);
@@ -70,7 +82,8 @@ class GearShiftManual final : public GearShift {
 
  public:
     virtual int8_t getShiftResult() {
-        return state == Idle ? getGearAtPosition(currentX, currentY) : -1; }
+        return state == Idle ? getGearAtPosition(currentX, currentY) : -1;
+    }
 
     virtual void onUp()     { tryGoDirection(Up); }
     virtual void onDown()   { tryGoDirection(Down); }

@@ -11,13 +11,14 @@
 
 class SpriteRenderer;
 class Sprite;
+class Car;
 
 #define NB_BG_LAYERS    (6)
 #define NB_GAMEOBJECTS  (2)
 
 class Level {
  public:
-    void initialize();
+    Level();
     void restart();
     void draw(SpriteRenderer* renderer);
     void update(int16_t dt);
@@ -26,6 +27,21 @@ class Level {
     void updateControls(uint8_t buttonsState, uint8_t oldButtonsState);
     void raceStart();
     void raceEnd();
+    void setGearMode(uint8_t mode) {
+        currentGearShift = mode == 0 ?
+                           static_cast<GearShift*>(&autoGearShift):
+                           static_cast<GearShift*>(&manualGearShift);
+    }
+    uint8_t getGearMode() {
+        return currentGearShift == static_cast<GearShift*>(&autoGearShift) ?
+               0 : 1;
+    }
+    void setGameMode(uint8_t gamemode) {
+        mode = static_cast<GameMode>(gamemode);
+    }
+    uint8_t getGameMode() {
+        return static_cast<uint8_t>(mode);
+    }
 
  private:
     class BackgroundLayer {
@@ -41,14 +57,14 @@ class Level {
     };
 
     class BackgroundGrid : public BackgroundLayer {
-        int16_t yTop;
-        int16_t yBot;
-        int16_t density;
+        int8_t yTop;
+        int8_t yBot;
+        int8_t density;
         void drawSingleLine(SpriteRenderer* renderer, int16_t x,
                             int16_t yTop, int16_t yBot);
      public:
-        BackgroundGrid(int16_t _yTop, int16_t _yBot,
-                        int16_t _density, int16_t factor) :
+        BackgroundGrid(int8_t _yTop, int8_t _yBot,
+                       int8_t _density, int16_t factor) :
                         BackgroundLayer(factor), yTop(_yTop),
                         yBot(_yBot), density(_density) {}
         virtual void draw(SpriteRenderer* renderer,
@@ -56,34 +72,22 @@ class Level {
     };
 
     class BackgroundSprite : public BackgroundLayer {
-        int16_t yPos;
-        int16_t width;
-        int16_t frame;
+        int8_t  yPos;
+        uint8_t width;
+        uint8_t frame;
      public:
-        BackgroundSprite(int16_t y, int16_t width,
-                            int16_t frame, int16_t factor) :
-                            BackgroundLayer(factor), yPos(y),
-                            width(width), frame(frame) {
+        BackgroundSprite(int8_t y, uint8_t width,
+                         uint8_t frame, int16_t factor) :
+                          BackgroundLayer(factor), yPos(y),
+                          width(width), frame(frame) {
             }
         virtual void draw(SpriteRenderer* renderer,
                           const FP32& cameraPosition);
     };
 
-    class BackgroundAnim : public BackgroundLayer {
-        int16_t yPos;
-        int16_t width;
-        SpriteAnimator bgAnimator;
-     public:
-        BackgroundAnim(int16_t y, int16_t width,
-                       uint8_t animation, int16_t factor);
-        virtual void draw(SpriteRenderer* renderer,
-                          const FP32& cameraPosition);
-        virtual void update(int16_t dt);
-    };
-
     class BackgroundChopper : public BackgroundLayer {
         bool waiting;
-        int16_t yPos;
+        int8_t  yPos;
         int16_t timer;
         FP32 xPos;
         FP32 xSpeed;    // in px/sec
@@ -113,27 +117,31 @@ class Level {
         Result
     };
 
-    LevelState      state;
+    enum GameMode : uint8_t {
+        TimeAttack = 0,
+        Duel,
+    };
 
+    LevelState      state = Countdown;
+    GameMode        mode = TimeAttack;
     GearShiftAuto   autoGearShift;
     GearShiftManual manualGearShift;
-    GearShift*      currentGearShift;
-    GameObject*     objectsInventory[NB_GAMEOBJECTS];
-    GameObject*     activeObjects[NB_GAMEOBJECTS];
+    GearShift*      currentGearShift = &autoGearShift;
 
     SpriteAnimator  screenAnim;
     bool            showScreenAnim;
-    uint8_t         nbActiveObjects;
-    uint8_t         playerCarIdx;
-    uint8_t         enemyCarIdx;
+    Car*            playerCar;
+    Car*            enemyCar;
 
     int32_t         levelTimer;
 
     void drawHUD(SpriteRenderer* renderer);
-    void drawMainCarHUD(SpriteRenderer* renderer, int16_t x, int16_t y);
-    inline void updateState(int16_t dt);
-    inline void updateGeneral(int16_t dt);
-    inline void updateCamera();
+    void drawCarHUD(SpriteRenderer* renderer, int16_t x, int16_t y);
+    void drawTimer(SpriteRenderer* renderer, int16_t x, int16_t y);
+    void updateState(int16_t dt);
+    void updateGeneral(int16_t dt);
+    void updateCamera();
+    void foreachGameObject(auto func);
 };
 
 #endif  // LEVEL_H_

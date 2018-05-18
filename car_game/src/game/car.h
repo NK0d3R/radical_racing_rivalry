@@ -40,7 +40,7 @@ class Car : public GameObject {
     SpriteAnimator wheels;
     void updateEngine(int16_t dt);
     void updateWheelsAnim(int16_t dt);
-    inline bool engineIsConnected() { return gear > 0 && clutch == false; }
+    bool engineIsConnected() { return gear > 0 && clutch == false; }
 };
 
 #endif  // CAR_H_

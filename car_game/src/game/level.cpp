@@ -28,35 +28,31 @@ void Level::BackgroundGrid::drawSingleLine(SpriteRenderer* renderer,
 
 void Level::BackgroundGrid::draw(SpriteRenderer* renderer,
                                  const FP32& cameraPosition) {
-    int32_t offset = camPosToOffset(cameraPosition);
+    int16_t offset = camPosToOffset(cameraPosition);
     offset %= density;
     for (int16_t line_x_top = offset; line_x_top < (SCREEN_W / 2);
-        line_x_top += density) {
+         line_x_top += density) {
         drawSingleLine(renderer, line_x_top, yTop, yBot);
     }
     for (int16_t line_x_top = offset - density;
-        line_x_top > -(SCREEN_W / 2); line_x_top -= density) {
+         line_x_top > -(SCREEN_W / 2); line_x_top -= density) {
         drawSingleLine(renderer, line_x_top, yTop, yBot);
     }
-    int16_t crt_y = yTop;
-    renderer->drawLine(0, crt_y, SCREEN_W - 1, crt_y);
-    crt_y = yBot;
-    renderer->drawLine(0, crt_y, SCREEN_W - 1, crt_y);
-
-    for (int16_t idx = 2; idx > 0; idx --) {
-        crt_y = ((yTop + crt_y) >> 1);
-        renderer->drawLine(0, crt_y, SCREEN_W - 1, crt_y);
+    int8_t mid = ((yTop + yBot) >> 1);
+    int8_t values[4] = { yTop, yBot, mid, ((yTop + mid) >> 1) };
+    for (auto y : values) {
+        renderer->drawLine(0, y, SCREEN_W - 1, y);
     }
 }
 
 
 void Level::BackgroundSprite::draw(SpriteRenderer* renderer,
                                    const FP32& cameraPosition) {
-    int32_t offset = (SCREEN_W / 2);
+    int16_t offset = (SCREEN_W / 2);
     if (offsetFactor != 0) {
         int16_t maxOffset = SCREEN_W + (width >> 1);
         offset += (camPosToOffset(cameraPosition) % width);
-        if (offset > 0) {
+        while (offset > (width >> 1)) {
             offset -= width;
         }
         do {
@@ -141,29 +137,7 @@ void Level::BackgroundChopper::draw(SpriteRenderer* renderer,
     }
 }
 
-Level::BackgroundAnim::BackgroundAnim(int16_t y, int16_t width,
-                                      uint8_t animation, int16_t factor):
-                                      BackgroundLayer(factor), yPos(y),
-                                      width(width) {
-    bgAnimator.init(GetSprite(SPRITE_ENV));
-    bgAnimator.setAnimation(animation, 0, true);
-}
-
-void Level::BackgroundAnim::draw(SpriteRenderer* renderer,
-                                 const FP32& cameraPosition) {
-    int32_t offset = (SCREEN_W / 2);
-    if (offsetFactor != 0) {
-        offset -= (camPosToOffset(cameraPosition) % width);
-        bgAnimator.draw(renderer, offset + width, yPos);
-    }
-    bgAnimator.draw(renderer, offset, yPos);
-}
-
-void Level::BackgroundAnim::update(int16_t dt) {
-    bgAnimator.update(dt);
-}
-
-void Level::initialize() {
+Level::Level() {
     bgLayers[0] = new BackgroundSprite(25, 0, BACKGROUND_SUN_FRM, 0);
     bgLayers[1] = new BackgroundSprite(23, 190, BACKGROUND_LAYER_1, 25);
     bgLayers[2] = new BackgroundSprite(25, 190, BACKGROUND_LAYER_1, 100);
@@ -171,30 +145,32 @@ void Level::initialize() {
     bgLayers[4] = new BackgroundChopper();
     bgLayers[5] = new BackgroundSprite(42, 240, BACKGROUND_LAYER_2, 430);
 
-    objectsInventory[PLAYER_CAR] = new Car(this, 0, FP32(0.0f), 43);
-    objectsInventory[ENEMY_CAR] = new EnemyCar(this, 0, FP32(0.0f), 43);
+    playerCar = new Car(this, 0, FP32(0.2f), 43);
+    enemyCar = new EnemyCar(this, 0, FP32(0.2f), 43);
 
     screenAnim.init(GetSprite(SPRITE_CAR));
-    restart();
 }
 
 void Level::restart() {
-    cameraPosition = -100;
-    nbActiveObjects = 0;
-    enemyCarIdx = nbActiveObjects;
-    activeObjects[nbActiveObjects ++] = objectsInventory[ENEMY_CAR];
-    playerCarIdx = nbActiveObjects;
-    activeObjects[nbActiveObjects ++] = objectsInventory[PLAYER_CAR];
-    currentGearShift = static_cast<GearShift*>(&autoGearShift);
+    playerCar->reset(mode == Duel ? FP32(0.8f) : FP32(0.6f));
+    playerCar->updateScreenY();
+    if (mode == Duel) {
+        enemyCar->reset(FP32(0.2f));
+        enemyCar->updateScreenY();
+    }
     currentGearShift->reset();
-    static_cast<Car*>(activeObjects[playerCarIdx])->reset(FP32(0.8));
-    static_cast<Car*>(activeObjects[playerCarIdx])->updateScreenY();
-    static_cast<Car*>(activeObjects[enemyCarIdx])->reset(FP32(0.2));
-    static_cast<Car*>(activeObjects[enemyCarIdx])->updateScreenY();
+    cameraPosition = 3000;
     levelTimer = 0;
     showScreenAnim = true;
     screenAnim.setAnimation(CAR_COUNTDOWN_ANIM, 0, false);
     state = Countdown;
+}
+
+void Level::foreachGameObject(auto func) {
+    func(playerCar);
+    if (mode == Duel) {
+        func(enemyCar);
+    }
 }
 
 void Level::draw(SpriteRenderer* renderer) {
@@ -202,11 +178,9 @@ void Level::draw(SpriteRenderer* renderer) {
         layer->draw(renderer, cameraPosition);
     }
 
-    for (uint8_t idx = 0; idx < nbActiveObjects; ++idx) {
-        if (activeObjects[idx]->isVisible()) {
-            activeObjects[idx]->draw(renderer);
-        }
-    }
+    foreachGameObject([&](GameObject* obj) {
+                       if (obj->isVisible()) obj->draw(renderer);
+                      });
 
     if (state == Race) {
         drawHUD(renderer);
@@ -217,20 +191,18 @@ void Level::draw(SpriteRenderer* renderer) {
     }
 }
 
-#define DEBUG_ENEMY_SPEED   (1)
+#define DEBUG_ENEMY_SPEED   (0)
 
-void Level::drawMainCarHUD(SpriteRenderer* renderer, int16_t x, int16_t y) {
+void Level::drawCarHUD(SpriteRenderer* renderer, int16_t x, int16_t y) {
 // Draw RPM bar
-    Car& mainCar = *static_cast<Car*>(activeObjects[playerCarIdx]);
 #if DEBUG_ENEMY_SPEED
     #define NB_SPEED_DIGITS (6)
-    Car& enemyCar = *static_cast<Car*>(activeObjects[enemyCarIdx]);
 #else
     #define NB_SPEED_DIGITS (3)
 #endif
     GetSprite(SPRITE_CAR)->drawAnimationFrame(renderer, CAR_RPM_HUD,
                                               HUD_FRAME_RPM, x, y, 0);
-    int32_t barLength = ((mainCar.getRPM() * MAX_RPM_BAR_LENGTH) /
+    int32_t barLength = ((playerCar->getRPM() * MAX_RPM_BAR_LENGTH) /
                           Defs::MAX_RPM).getInt();
     CLAMP_UPPER(barLength, MAX_RPM_BAR_LENGTH);
     renderer->setClip(x + 1, 0, barLength + 2, SCREEN_H);
@@ -241,10 +213,10 @@ void Level::drawMainCarHUD(SpriteRenderer* renderer, int16_t x, int16_t y) {
     int16_t crtX = x + 23;
     int16_t crtY = y - 5;
 #if DEBUG_ENEMY_SPEED
-    int32_t speed = MPS_TO_KPH(mainCar.getSpeed()).getInt() * 1000 +
-                    MPS_TO_KPH(enemyCar.getSpeed()).getInt();
+    int32_t speed = MPS_TO_KPH(playerCar->getSpeed()).getInt() * 1000 +
+                    MPS_TO_KPH(enemyCar->getSpeed()).getInt();
 #else
-    int32_t speed = MPS_TO_KPH(mainCar.getSpeed()).getInt();
+    int32_t speed = MPS_TO_KPH(playerCar->getSpeed()).getInt();
 #endif
     for (int8_t digit = 0; digit < NB_SPEED_DIGITS; ++digit) {
         GetSprite(SPRITE_CAR)->drawAnimationFrame(renderer, CAR_SPEED_FONT,
@@ -254,31 +226,47 @@ void Level::drawMainCarHUD(SpriteRenderer* renderer, int16_t x, int16_t y) {
     }
 // Draw unit
     uint8_t unitFrame = HUD_FRAME_KPH;
-    if (mainCar.getRPM() > 7200) {
+    if (playerCar->getRPM() > 7200) {
         unitFrame = HUD_FRAME_WARNING;
     }
     GetSprite(SPRITE_CAR)->drawAnimationFrame(renderer, CAR_RPM_HUD,
                                               unitFrame, x, y, 0);
 // Draw gear
     GetSprite(SPRITE_CAR)->drawAnimationFrame(renderer, CAR_SPEED_FONT,
-                                              mainCar.getGear(), x, y, 0);
+                                              playerCar->getGear(), x, y, 0);
 }
 
 void Level::drawHUD(SpriteRenderer* renderer) {
-    Car& mainCar = *static_cast<Car*>(activeObjects[playerCarIdx]);
-    if (mainCar.isClutched()) {
+    if (playerCar->isClutched()) {
         currentGearShift->draw(renderer, 110, 52);
     } else {
-        drawMainCarHUD(renderer, 94, 64);
+        drawCarHUD(renderer, 94, 64);
+    }
+    if (mode == TimeAttack) {
+        drawTimer(renderer, 0, 64);
     }
 }
 
+void Level::drawTimer(SpriteRenderer* renderer, int16_t x, int16_t y) {
+    static char timerStr[10] = {0};
+    uint16_t sec = levelTimer / 1000;
+    uint16_t msec = levelTimer - (sec * 1000);
+    uint16_t min = sec / 60;
+    sec -= min * 60;
+    fastGetDigits(msec, &timerStr[8], 3);
+    fastGetDigits(sec, &timerStr[4], 2);
+    fastGetDigits(min, &timerStr[1], 2);
+    timerStr[5] = '.';
+    timerStr[2] = ':';
+    GetFont(FONT_MAIN)->drawString(renderer, timerStr, x, y,
+                                   ANCHOR_LEFT | ANCHOR_BOTTOM);
+}
+
 void Level::updateControls(uint8_t buttonsState, uint8_t oldButtonsState) {
-    Car& mainCar = *static_cast<Car*>(activeObjects[playerCarIdx]);
     uint8_t changedButtons = (buttonsState ^ oldButtonsState);
-    mainCar.pedalToTheMetal(buttonsState & A_BUTTON);
-    mainCar.setClutch(buttonsState & B_BUTTON);
-    if (mainCar.isClutched()) {
+    playerCar->pedalToTheMetal(buttonsState & A_BUTTON);
+    playerCar->setClutch(buttonsState & B_BUTTON);
+    if (playerCar->isClutched()) {
         if ((changedButtons & buttonsState & UP_BUTTON)) {
             currentGearShift->onUp();
         }
@@ -294,7 +282,7 @@ void Level::updateControls(uint8_t buttonsState, uint8_t oldButtonsState) {
     } else if (changedButtons & B_BUTTON) {
         int8_t shiftResult = currentGearShift->getShiftResult();
         if (shiftResult != -1) {
-            mainCar.shiftGear(shiftResult);
+            playerCar->shiftGear(shiftResult);
         }
     }
     uint8_t resetMask = (A_BUTTON | B_BUTTON | LEFT_BUTTON);
@@ -309,7 +297,6 @@ void Level::update(int16_t dt) {
 }
 
 void Level::updateState(int16_t dt) {
-    Car& mainCar = *static_cast<Car*>(activeObjects[playerCarIdx]);
     switch (state) {
         case Countdown:
             screenAnim.update(dt);
@@ -318,37 +305,33 @@ void Level::updateState(int16_t dt) {
             }
         break;
         case Race:
-            if (mainCar.isClutched()) {
+            if (playerCar->isClutched()) {
                 currentGearShift->update();
             }
-            if (showScreenAnim && mainCar.getSpeed() > 0) {
+            if (showScreenAnim && playerCar->getSpeed() > 0) {
                 showScreenAnim = false;
+            }
+            levelTimer += dt;
+            if (levelTimer > 1000000000) {
+                levelTimer = 1000000000;
             }
         break;
     }
 }
 
 void Level::raceStart() {
-    for (uint8_t idx = 0; idx < nbActiveObjects; ++idx) {
-        activeObjects[idx]->onRaceStart();
-    }
+    foreachGameObject([&](GameObject* obj) { obj->onRaceStart(); });
     state = Race;
 }
 
 void Level::raceEnd() {
-    for (uint8_t idx = 0; idx < nbActiveObjects; ++idx) {
-        activeObjects[idx]->onRaceEnd();
-    }
+    foreachGameObject([&](GameObject* obj) { obj->onRaceEnd(); });
 }
 
 void Level::updateGeneral(int16_t dt) {
-    for (uint8_t idx = 0; idx < nbActiveObjects; ++idx) {
-        activeObjects[idx]->update(dt);
-    }
+    foreachGameObject([&](GameObject* obj) { obj->update(dt); });
     updateCamera();
-    for (uint8_t idx = 0; idx < nbActiveObjects; ++idx) {
-        activeObjects[idx]->updateScreenX();
-    }
+    foreachGameObject([&](GameObject* obj) { obj->updateScreenX(); });
     for (auto layer : bgLayers) {
         layer->update(dt);
     }
@@ -365,7 +348,6 @@ int16_t Level::worldToScreenY(const FP32& x, const FP32& y) {
 }
 
 void Level::updateCamera() {
-    Car& mainCar = *static_cast<Car*>(activeObjects[playerCarIdx]);
-    cameraPosition += mainCar.getX() + FP32(4);
+    cameraPosition += playerCar->getX() + FP32(4);
     cameraPosition /= 2;
 }

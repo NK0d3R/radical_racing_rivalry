@@ -5,11 +5,6 @@
 #include "../res/sprites.h"
 #include "../engine/renderer.h"
 
-#define GEAR_DISPL_W            (8)
-#define GEAR_DISPL_H            (7)
-#define GEAR_SCROLL_FRAMES      (3)
-#define GEAR_SCROLL_PER_FRAME   (GEAR_DISPL_H / GEAR_SCROLL_FRAMES)
-
 void GearShiftAuto::reset() {
     scrollAmount = 0;
     currentGear = 0;
@@ -18,8 +13,8 @@ void GearShiftAuto::reset() {
 
 void GearShiftAuto::update() {
     if (state != Idle) {
-        scrollAmount += GEAR_SCROLL_PER_FRAME;
-        if (scrollAmount >= GEAR_DISPL_H) {
+        scrollAmount += GearScrollPerFrame;
+        if (scrollAmount >= GearDisplH) {
             currentGear += (static_cast<int16_t>(state));
             scrollAmount = 0;
             state = Idle;
@@ -39,8 +34,8 @@ void GearShiftAuto::draw(SpriteRenderer* renderer, int16_t x, int16_t y) {
         car->drawAnimationFrame(renderer, CAR_GEARS_AUTO, HUD_GEARS_M_DOWN, x,
                                 y + arrowOffset, 0);
     }
-    renderer->setClip(x - (GEAR_DISPL_W >> 1), y - (GEAR_DISPL_H >> 1),
-                      GEAR_DISPL_W, GEAR_DISPL_H);
+    renderer->setClip(x - (GearDisplW >> 1), y - (GearDisplH >> 1),
+                      GearDisplW, GearDisplH);
     if (state != Idle) {
         y = y + (static_cast<int16_t>(state)) * scrollAmount;
     }
@@ -48,11 +43,11 @@ void GearShiftAuto::draw(SpriteRenderer* renderer, int16_t x, int16_t y) {
     if (state != Idle) {
         if (currentGear < MAX_GEAR - 1) {
             car->drawAnimationFrame(renderer, CAR_GEARS_AUTO, currentGear + 1,
-                                    x, y - GEAR_DISPL_H, 0);
+                                    x, y - GearDisplH, 0);
         }
         if (currentGear > 0) {
             car->drawAnimationFrame(renderer, CAR_GEARS_AUTO, currentGear - 1,
-                                    x, y + GEAR_DISPL_H, 0);
+                                    x, y + GearDisplH, 0);
         }
     }
     renderer->setClip(0, 0, SCREEN_W, SCREEN_H);
@@ -70,11 +65,6 @@ void GearShiftAuto::onDown() {
     }
 }
 
-#define STICK_MOVE_PER_FRAME_H  (2)
-#define STICK_MOVE_PER_FRAME_V  (2)
-#define STICK_H_STEP            (6)
-#define STICK_V_STEP            (5)
-
 void GearShiftManual::reset() {
     currentGear = 0;
     currentX = 1;
@@ -87,10 +77,10 @@ void GearShiftManual::reset() {
 void GearShiftManual::getNextPosition(ShiftState direction,
                                       int8_t* x, int8_t* y) {
     switch (direction) {
-        case Left:  *x--; break;
-        case Right: *x++; break;
-        case Up:    *y--; break;
-        case Down:  *y++; break;
+        case Left:  (*x)--; break;
+        case Right: (*x)++; break;
+        case Up:    (*y)--; break;
+        case Down:  (*y)++; break;
     }
 }
 
@@ -120,15 +110,15 @@ void GearShiftManual::tryGoDirection(ShiftState direction) {
     if (state != Idle) return;
     if (canGoDirection(direction)) {
         state = direction;
-        targetOffset = (direction == Up || direction == Down) ? STICK_V_STEP :
-                        STICK_H_STEP;
+        targetOffset = (direction == Up || direction == Down) ? StickVStep :
+                        StickHStep;
     }
 }
 
 void GearShiftManual::update() {
     if (state != Idle) {
         int8_t offIncr = (state == Up || state == Down) ?
-                          STICK_MOVE_PER_FRAME_V : STICK_MOVE_PER_FRAME_H;
+                          StickMovePerFrameV : StickMovePerFrameH;
         currentOffset += offIncr;
         if (currentOffset >= targetOffset) {
             currentOffset = 0;
@@ -142,8 +132,8 @@ void GearShiftManual::draw(SpriteRenderer* renderer, int16_t x, int16_t y) {
     Sprite* car = GetSprite(SPRITE_CAR);
     car->drawAnimationFrame(renderer,
                             CAR_GEARS_MANUAL, HUD_GEARS_A_BG, x, y, 0);
-    int16_t xPos = x + (currentX - 1) * STICK_H_STEP;
-    int16_t yPos = y + (currentY - 1) * STICK_V_STEP;
+    int16_t xPos = x + (currentX - 1) * StickHStep;
+    int16_t yPos = y + (currentY - 1) * StickVStep;
     switch (state) {
         case Left:  xPos -= currentOffset; break;
         case Right: xPos += currentOffset; break;

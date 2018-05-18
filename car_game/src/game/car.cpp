@@ -101,13 +101,13 @@ void Car::pedalToTheMetal(bool on) {
     if (on) {
         FP32 maxThrottle(1);
         if (throttle < maxThrottle) {
-            throttle += FP32(0.1);
+            throttle += FP32(0.1f);
             throttle.clampUpper(maxThrottle);
         }
     } else {
         FP32 minThrottle(0);
         if (throttle > minThrottle) {
-            throttle -= FP32(0.1);
+            throttle -= FP32(0.1f);
             throttle.clampLower(minThrottle);
         }
     }

@@ -2,6 +2,7 @@
 
 #include "renderer.h"
 
+uint8_t SpriteRenderer::lineBuffer[BUFFER_CAPACITY] = {0};
 
 uint8_t SpriteRenderer::leftMask(uint8_t nbBits) {
     static const uint8_t leftMasks[] PROGMEM = {

@@ -11,20 +11,12 @@
 
 class SpriteRenderer {
  private:
+    static uint8_t lineBuffer[BUFFER_CAPACITY];
     Rect clip;
     uint8_t* frameBuffer;
-    uint8_t* lineBuffer;
     uint16_t frameStride;
 
  public:
-    SpriteRenderer() {
-        lineBuffer = new uint8_t[BUFFER_CAPACITY];
-    }
-
-    ~SpriteRenderer() {
-        delete[](lineBuffer);
-    }
-
     void initialize(uint8_t* fb, uint16_t fs);
     void setClip(int16_t x, int16_t y, int16_t w, int16_t h);
     inline Rect& getClip() { return clip; }

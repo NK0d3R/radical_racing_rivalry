@@ -84,7 +84,7 @@ void Menu::updateControls(uint8_t buttonsState, uint8_t oldButtonsState) {
     if ((changedButtons & buttonsState & RIGHT_BUTTON)) {
         onRight();
     }
-    if ((changedButtons & buttonsState & A_BUTTON)) {
+    if ((changedButtons & buttonsState & B_BUTTON)) {
         onConfirm();
     }
 }

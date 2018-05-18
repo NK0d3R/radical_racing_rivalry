@@ -10,18 +10,22 @@ class SpriteRenderer;
 
 class Menu {
  public:
-    Menu(uint16_t* menuData, uint8_t nbItems, uint8_t width, uint8_t anim):
-        menuData(menuData),
-        nbItems(nbItems),
-        width(width),
-        animation(anim),
-        crtSelection(0),
-        optionStatus(0),
-        action(0) {}
+    void set(uint16_t* menu, uint8_t nbi, uint8_t w, uint8_t anim) {
+        menuData = menu;
+        nbItems = nbi;
+        width = w;
+        animation = anim;
+        crtSelection = 0;
+        optionStatus = 0;
+        action = 0;
+    }
     void draw(SpriteRenderer* renderer, int16_t x, int16_t y);
     uint8_t getItemOption(uint8_t item) {
-        return ((optionStatus >> (item * optionBits)) &
-                optionMask);
+        return ((optionStatus >> (item * optionBits)) & optionMask);
+    }
+    void setItemOption(uint8_t item, uint8_t option) {
+        optionStatus &= ~(optionMask << (item * optionBits));
+        optionStatus |=  (option << (item * optionBits));
     }
     void restart();
     uint8_t getAction() { return action; }
@@ -39,10 +43,6 @@ class Menu {
  private:
     constexpr static uint8_t optionBits = 2;
     constexpr static uint8_t optionMask = (1 << optionBits) - 1;
-    void setItemOption(uint8_t item, uint8_t option) {
-        optionStatus &= ~(optionMask << (item * optionBits));
-        optionStatus |=  (option << (item * optionBits));
-    }
     void drawSpriteElementBackground(SpriteRenderer* renderer,
                                      int16_t x, int16_t y, int8_t height,
                                      bool hasArrows);
