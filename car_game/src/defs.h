@@ -19,92 +19,133 @@ enum AppState {
 };
 
 void setAppState(AppState newState);
-void fastGetDigits(uint16_t value, char* str, uint16_t nbDigits);
-
-#define SCREEN_W    128
-#define SCREEN_H    64
-
-#define SPRITE_ENV      (0)
-#define SPRITE_CAR      (1)
-#define SPRITE_MENU     (2)
-#define NB_SPRITES      (3)
-
-#define CAR_BODY_ANIM       (0)
-#define CAR_WHEELS_ANIM     (1)
-#define CAR_REFLECTION_ANIM (2)
-#define CAR_EXPLOSION_ANIM  (3)
-#define CAR_RPM_HUD         (4)
-#define CAR_SPEED_FONT      (5)
-#define CAR_GEARS_AUTO      (6)
-#define CAR_GEARS_MANUAL    (7)
-#define CAR_COUNTDOWN_ANIM  (8)
-
-#define HUD_FRAME_RPM       (0)
-#define HUD_FRAME_RPM_BAR   (1)
-#define HUD_FRAME_KPH       (2)
-#define HUD_FRAME_MPH       (3)
-#define HUD_FRAME_WARNING   (4)
-
-#define HUD_GEARS_M_UP      (6)
-#define HUD_GEARS_M_DOWN    (7)
-#define HUD_GEARS_M_BG      (8)
-
-#define HUD_GEARS_A_BG      (0)
-#define HUD_GEARS_A_STICK   (1)
-
-#define MENU_ELEMS_ANIM     (0)
-#define MENU_BG_FRAME       (0)
-#define MENU_ARROW_R_FRAME  (2)
-#define MENU_ARROW_L_FRAME  (3)
-#define MENU_MAIN_ANIM      (1)
-
-#define ACTION_START_GAME   (1)
-
-#define BG_CHOPPER_MARGIN_OFFSET    (15)
-#define BG_CHOPPER_WAIT_TIME_MIN    (3000)
-#define BG_CHOPPER_WAIT_TIME_MAX    (5000)
-#define BG_CHOPPER_DECISION_TIME    (1500)
-
-#define MAX_RPM_BAR_LENGTH  (32)
-#define CAR_SPEED_FONT_W    (5)
-
-#define FONT_MAIN       (0)
-#define NB_FONTS        (1)
-
-#define BACKGROUND_ANIM             (0)
-#define BACKGROUND_SUN_FRM          (0)
-#define BACKGROUND_LAYER_1          (1)
-#define BACKGROUND_LAYER_2          (2)
-
-#define BACKGROUND_CHOPPER_ANIM     (1)
-
-#define PRECISION_SHIFT             (8)
-#define STATE_INVALID               (0xFF)
-#define ABS(x)                      (x < 0 ? -x : x)
-#define SGN(x)                      (x < 0 ? -1 : 1)
-#define SGNZ(x)                     (x == 0 ? 0 : SGN(x))
-#define CLAMP_LOWER(x, limit)       (x = (x < limit) ? limit : x)
-#define CLAMP_UPPER(x, limit)       (x = (x > limit) ? limit : x)
-#define MPS_TO_KPH(x)               ((x * 36) / 10)
-#define MIN(x, y)                   ((x) < (y) ? (x) : (y))
-#define PIXELS_TO_M(x)              ((x) / 10)
-#define M_TO_PIXELS(x)              ((x) * 10)
-
-#define MAIN_FONT_HEIGHT            (7)
-#define MAIN_FONT_SPACE_W           (4)
-
-#define LEVEL_ACTION_AREA_TOP       (48)
-#define LEVEL_ACTION_AREA_BOT       (63)
-
-#define MAX_GEAR                    (5)
 
 struct Defs {
-    static const FP32 FP_SCR_W;
-    static const FP32 FP_HALF_SCR_W;
-    static const FP32 FP_SCR_H;
-    static const FP32 FP_HALF_SCR_H;
-    static const FP32 MIN_RPM;
-    static const FP32 MAX_RPM;
-};
-#endif  // DEFS_H__
+    static constexpr int16_t ScreenW = 128;
+    static constexpr int16_t ScreenH = 64;
 
+    // Sprites
+    enum : uint8_t {
+        SpriteEnv = 0,
+        SpriteCar,
+        SpriteMenu,
+        SpritesNb
+    };
+
+    // Font
+    enum : uint8_t {
+        FontMain = 0,
+        FontsNb
+    };
+
+    // SpriteEnv anims
+    enum : uint8_t {
+        AnimBackgrounds = 0,
+        AnimChopper  // Currently removed from sprite
+    };
+
+    // AnimBackgrounds frames
+    enum : uint8_t {
+        BackgroundSun = 0,
+        BackgroundLayer1,
+        BackgroundLayer2
+    };
+
+    // SpriteCar anims
+    enum : uint8_t {
+        AnimCarBody = 0,
+        AnimCarWheels,
+        AnimCarReflection,
+        AnimCarExplosion,
+        AnimCarRPMHud,
+        AnimCarSpeedFont,
+        AnimCarGearsAuto,
+        AnimCarGearsManual,
+        AnimCarCountdown
+    };
+
+    // AnimCarRPMHud frames
+    enum : uint8_t {
+        HUDFrameRPM = 0,
+        HUDFrameRPMBar,
+        HUDFrameKPH,
+        HUDFrameMPH,
+        HUDFrameWarning
+    };
+
+    // AnimCarGearsManual frames
+    enum : uint8_t {
+        HUDGearsManualUp = 6,
+        HUDGearsManualDown,
+        HUDGearsManualBg
+    };
+
+    // AnimCarGearsAuto frames
+    enum : uint8_t {
+        HUDGearsAutoBg = 0,
+        HUDGearsAutoStick
+    };
+
+    // SpriteMenu anims
+    enum : uint8_t {
+        AnimMenuElements = 0,
+        AnimMenuMain
+    };
+
+    // AnimMenuElements frames
+    enum : uint8_t {
+        MenuItemBg = 0,
+        MenuArrowR = 2,
+        MenuArrowL
+    };
+
+    // Menu actions
+    enum : uint8_t {
+        MenuActionStart = 1
+    };
+
+    static constexpr int8_t BgChopperMarginOffset = 15;
+    static constexpr int16_t BgChopperMinWaitTime = 3000;
+    static constexpr int16_t BgChopperMaxWaitTime = 5000;
+    static constexpr int16_t BgChopperDecisionTime = 1500;
+
+    static constexpr int16_t RPMBarLength = 32;
+    static constexpr int8_t CarSpeedFontW = 5;
+
+    static constexpr uint8_t MainFontHeight = 7;
+    static constexpr uint8_t MainFontSpaceW = 5;
+
+    static constexpr int16_t LevelActionAreaTop = 45;
+    static constexpr int16_t LevelActionAreaBottom = 63;
+
+    static constexpr int8_t MaxGear = 5;
+
+    static const FP32 FPHalfScrW;
+    static const FP32 MinRPM;
+    static const FP32 MaxRPM;
+    static const FP32 RaceLength;
+};
+
+struct Utils {
+    template<typename T>
+    static T sgn(T x) { return x < 0 ? -1 : 1; }
+
+    template<typename T>
+    static T sgnz(T x) { return x == 0 ? 0 : Utils::sgn(x); }
+
+    template<typename T>
+    static T pixelsToMeters(T x) { return (x / 10); }
+
+    template<typename T>
+    static T metersToPixels(T x) { return (x * 10); }
+
+    template<typename T>
+    static T mpsToKph(T x) { return (x * 36) / 10; }
+
+    template<typename T>
+    static T upperClamp(T x, T limit) { return x > limit ? limit : x; }
+
+    static void fastGetDigits(uint16_t value, char* str, uint16_t nbDigits);
+};
+
+#endif  // DEFS_H__

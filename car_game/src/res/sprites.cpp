@@ -4,8 +4,8 @@
 #include "../engine/ardusprite.h"
 #include "../defs.h"
 
-Sprite sprites[NB_SPRITES];
-Font fonts[NB_FONTS];
+Sprite sprites[Defs::SpritesNb];
+Font fonts[Defs::FontsNb];
 
 Sprite* GetSprite(int8_t idx) {
     return &sprites[idx];

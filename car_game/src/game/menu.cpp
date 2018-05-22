@@ -17,10 +17,10 @@
 void Menu::drawSpriteElementBackground(SpriteRenderer* renderer,
                                        int16_t x, int16_t y, int8_t height,
                                        bool hasArrows) {
-    Sprite* spr = GetSprite(SPRITE_MENU);
+    Sprite* spr = GetSprite(Defs::SpriteMenu);
     static int16_t bgTileW = GET_W_FROM_SIZE(spr->measureAnimationFrame(
-                                                    MENU_ELEMS_ANIM,
-                                                    MENU_BG_FRAME));
+                                                    Defs::AnimMenuElements,
+                                                    Defs::MenuItemBg));
     renderer->setClip(x - (width >> 1), y - (height >> 1), width, height);
     int16_t maxX = renderer->getClip().maxX;
     int32_t frame = getFrameCounter();
@@ -28,7 +28,8 @@ void Menu::drawSpriteElementBackground(SpriteRenderer* renderer,
         int16_t offset = (frame * (scale << 1)) % bgTileW;
         int16_t crtX = renderer->getClip().x - offset;
         while (crtX <= maxX) {
-            spr->drawAnimationFrame(renderer, MENU_ELEMS_ANIM, (scale - 2),
+            spr->drawAnimationFrame(renderer,
+                                    Defs::AnimMenuElements, (scale - 2),
                                     crtX, y, 0);
             crtX += bgTileW;
         }
@@ -39,12 +40,14 @@ void Menu::drawSpriteElementBackground(SpriteRenderer* renderer,
                        maxX, renderer->getClip().maxY);
     if (hasArrows) {
         int16_t arrowOffset = 3 + ((frame & 5) >> 2);
-        spr->drawAnimationFrame(renderer, MENU_ELEMS_ANIM, MENU_ARROW_L_FRAME,
+        spr->drawAnimationFrame(renderer,
+                                Defs::AnimMenuElements, Defs::MenuArrowL,
                                 renderer->getClip().x + arrowOffset, y, 0);
-        spr->drawAnimationFrame(renderer, MENU_ELEMS_ANIM, MENU_ARROW_R_FRAME,
+        spr->drawAnimationFrame(renderer,
+                                Defs::AnimMenuElements, Defs::MenuArrowR,
                                 maxX - arrowOffset, y, 0);
     }
-    renderer->setClip(0, 0, SCREEN_W, SCREEN_H);
+    renderer->setClip(0, 0, Defs::ScreenW, Defs::ScreenH);
 }
 
 void Menu::draw(SpriteRenderer* renderer, int16_t x, int16_t y) {
@@ -62,7 +65,7 @@ void Menu::draw(SpriteRenderer* renderer, int16_t x, int16_t y) {
                 drawSpriteElementBackground(renderer, x, y, height,
                                             itemOptionCnt > 0);
             }
-            Sprite* spr = GetSprite(SPRITE_MENU);
+            Sprite* spr = GetSprite(Defs::SpriteMenu);
             spr->drawAnimationFrame(renderer, animation, visualID, x,
                                     y, 0);
             y += (height >> 1);
@@ -132,7 +135,7 @@ void Menu::restart() {
 PROGMEM const int16_t mainmenu[] = {
     Menu::itemDataCreate(0, 1, 1, 0, 24),
     Menu::itemDataCreate(0, 1, 1, 2, 20),
-    Menu::itemDataCreate(ACTION_START_GAME, 0, 1, 4, 14)
+    Menu::itemDataCreate(Defs::MenuActionStart, 0, 1, 4, 14)
 };
 
 int16_t* getMenuData(uint8_t menu) {

@@ -24,14 +24,17 @@ void GearShiftAuto::update() {
 
 void GearShiftAuto::draw(SpriteRenderer* renderer, int16_t x, int16_t y) {
     int8_t arrowOffset = (getFrameCounter() >> 1) & 0x3;
-    Sprite* car = GetSprite(SPRITE_CAR);
-    car->drawAnimationFrame(renderer, CAR_GEARS_AUTO, HUD_GEARS_M_BG, x, y, 0);
-    if (currentGear < MAX_GEAR) {
-        car->drawAnimationFrame(renderer, CAR_GEARS_AUTO, HUD_GEARS_M_UP, x,
+    Sprite* car = GetSprite(Defs::SpriteCar);
+    car->drawAnimationFrame(renderer, Defs::AnimCarGearsAuto,
+                            Defs::HUDGearsManualBg, x, y, 0);
+    if (currentGear < Defs::MaxGear) {
+        car->drawAnimationFrame(renderer, Defs::AnimCarGearsAuto,
+                                Defs::HUDGearsManualUp, x,
                                 y - arrowOffset, 0);
     }
     if (currentGear > 0) {
-        car->drawAnimationFrame(renderer, CAR_GEARS_AUTO, HUD_GEARS_M_DOWN, x,
+        car->drawAnimationFrame(renderer, Defs::AnimCarGearsAuto,
+                                Defs::HUDGearsManualDown, x,
                                 y + arrowOffset, 0);
     }
     renderer->setClip(x - (GearDisplW >> 1), y - (GearDisplH >> 1),
@@ -39,22 +42,25 @@ void GearShiftAuto::draw(SpriteRenderer* renderer, int16_t x, int16_t y) {
     if (state != Idle) {
         y = y + (static_cast<int16_t>(state)) * scrollAmount;
     }
-    car->drawAnimationFrame(renderer, CAR_GEARS_AUTO, currentGear, x, y, 0);
+    car->drawAnimationFrame(renderer, Defs::AnimCarGearsAuto,
+                            currentGear, x, y, 0);
     if (state != Idle) {
-        if (currentGear < MAX_GEAR - 1) {
-            car->drawAnimationFrame(renderer, CAR_GEARS_AUTO, currentGear + 1,
+        if (currentGear < Defs::MaxGear - 1) {
+            car->drawAnimationFrame(renderer, Defs::AnimCarGearsAuto,
+                                    currentGear + 1,
                                     x, y - GearDisplH, 0);
         }
         if (currentGear > 0) {
-            car->drawAnimationFrame(renderer, CAR_GEARS_AUTO, currentGear - 1,
+            car->drawAnimationFrame(renderer, Defs::AnimCarGearsAuto,
+                                    currentGear - 1,
                                     x, y + GearDisplH, 0);
         }
     }
-    renderer->setClip(0, 0, SCREEN_W, SCREEN_H);
+    renderer->setClip(0, 0, Defs::ScreenW, Defs::ScreenH);
 }
 
 void GearShiftAuto::onUp() {
-    if (state == Idle && currentGear < MAX_GEAR) {
+    if (state == Idle && currentGear < Defs::MaxGear) {
         state = ShiftUp;
     }
 }
@@ -129,9 +135,9 @@ void GearShiftManual::update() {
 }
 
 void GearShiftManual::draw(SpriteRenderer* renderer, int16_t x, int16_t y) {
-    Sprite* car = GetSprite(SPRITE_CAR);
-    car->drawAnimationFrame(renderer,
-                            CAR_GEARS_MANUAL, HUD_GEARS_A_BG, x, y, 0);
+    Sprite* car = GetSprite(Defs::SpriteCar);
+    car->drawAnimationFrame(renderer, Defs::AnimCarGearsManual,
+                            Defs::HUDGearsAutoBg, x, y, 0);
     int16_t xPos = x + (currentX - 1) * StickHStep;
     int16_t yPos = y + (currentY - 1) * StickVStep;
     switch (state) {
@@ -140,6 +146,6 @@ void GearShiftManual::draw(SpriteRenderer* renderer, int16_t x, int16_t y) {
         case Up:    yPos -= currentOffset; break;
         case Down:  yPos += currentOffset; break;
     }
-    car->drawAnimationFrame(renderer,
-                            CAR_GEARS_MANUAL, HUD_GEARS_A_STICK, xPos, yPos, 0);
+    car->drawAnimationFrame(renderer, Defs::AnimCarGearsManual,
+                            Defs::HUDGearsAutoStick, xPos, yPos, 0);
 }

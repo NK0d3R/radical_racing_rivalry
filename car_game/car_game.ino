@@ -27,7 +27,7 @@ void setAppState(AppState newState) {
     if (appState != newState) {
         switch (newState) {
             case MainMenu:
-                menu.set(getMenuData(0), 3, 100, MENU_MAIN_ANIM);
+                menu.set(getMenuData(0), 3, 100, Defs::AnimMenuMain);
                 menu.setItemOption(0, level.getGameMode());
                 menu.setItemOption(0, level.getGearMode());
                 menu.restart();
@@ -49,15 +49,16 @@ void setup() {
     buttonsState = 0;
     oldButtonsState = 0;
     frameCounter = 0;
-    GetSprite(SPRITE_ENV)->create(ENV_SPRITE_DATA);
-    GetSprite(SPRITE_CAR)->create(CAR_SPRITE_DATA);
-    GetSprite(SPRITE_MENU)->create(MENU_SPRITE_DATA);
-    GetFont(FONT_MAIN)->create(FONT_DATA, mapping, nb_map_elems,
-                               MAIN_FONT_SPACE_W, MAIN_FONT_HEIGHT,
-                               default_frame);
+    GetSprite(Defs::SpriteEnv)->create(ENV_SPRITE_DATA);
+    GetSprite(Defs::SpriteCar)->create(CAR_SPRITE_DATA);
+    GetSprite(Defs::SpriteMenu)->create(MENU_SPRITE_DATA);
+    GetFont(Defs::FontMain)->create(FONT_DATA, mapping, nb_map_elems,
+                                    Defs::MainFontSpaceW, Defs::MainFontHeight,
+                                    default_frame);
     renderer.initialize(app.getBuffer(), 128);
     renderer.setClip(0, 0, 128, 64);
     setAppState(MainMenu);
+    //Serial.begin(9600);
 }
 
 void loop() {
@@ -73,8 +74,8 @@ void loop() {
     switch(appState) {
         case MainMenu:
             menu.updateControls(buttonsState, oldButtonsState);
-            menu.draw(&renderer, (SCREEN_W >> 1), 0);
-            if (menu.getAction() == ACTION_START_GAME) {
+            menu.draw(&renderer, (Defs::ScreenW >> 1), 0);
+            if (menu.getAction() == Defs::MenuActionStart) {
                 level.setGameMode(menu.getItemOption(0));
                 level.setGearMode(menu.getItemOption(1));
                 level.restart();

@@ -13,16 +13,13 @@ class SpriteRenderer;
 class Sprite;
 class Car;
 
-#define NB_BG_LAYERS    (6)
-#define NB_GAMEOBJECTS  (2)
-
 class Level {
  public:
     Level();
     void restart();
     void draw(SpriteRenderer* renderer);
     void update(int16_t dt);
-    int16_t worldToScreenX(const FP32& x, const FP32& y);
+    int32_t worldToScreenX(const FP32& x, const FP32& y);
     int16_t worldToScreenY(const FP32& x, const FP32& y);
     void updateControls(uint8_t buttonsState, uint8_t oldButtonsState);
     void raceStart();
@@ -104,12 +101,7 @@ class Level {
 
     FP32 cameraPosition;
 
-    BackgroundLayer* bgLayers[NB_BG_LAYERS];
-
-    enum ObjectsInvIdx : int8_t {
-        PLAYER_CAR = 0,
-        ENEMY_CAR
-    };
+    static Level::BackgroundLayer* bgLayers[];
 
     enum LevelState : uint8_t {
         Countdown,
@@ -142,6 +134,8 @@ class Level {
     void updateGeneral(int16_t dt);
     void updateCamera();
     void foreachGameObject(auto func);
+    void drawMarker(SpriteRenderer* renderer, const FP32& worldPos);
+    void drawGameMarkers(SpriteRenderer* renderer);
 };
 
 #endif  // LEVEL_H_

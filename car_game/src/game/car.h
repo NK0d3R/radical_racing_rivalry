@@ -27,7 +27,7 @@ class Car : public GameObject {
     void pedalToTheMetal(bool on);
     void setClutch(bool on)             { clutch = on; }
     bool isClutched()                   { return clutch; }
-    int getMaxGear();
+    int getMaxGear()                    { return Defs::MaxGear; }
 
  protected:
     int8_t  gear;

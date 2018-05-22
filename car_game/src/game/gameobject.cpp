@@ -4,9 +4,8 @@
 #include "level.h"
 
 bool GameObject::isVisible() {
-    int32_t minX = screenX - (screenW >> 1);
-    int32_t maxX = minX + screenW;
-    return !(maxX < 0 || minX >= SCREEN_W);
+    int32_t minX = screenX - screenW;
+    return !(screenX < 0 || minX >= Defs::ScreenW);
 }
 
 void GameObject::updateScreenX() {

@@ -148,7 +148,7 @@ void SpriteRenderer::drawSpriteData1Bit(uint8_t* spriteData, uint8_t srcX,
             pixWritten = (8 - srcBit);
         }
 
-        pixWritten = MIN(pixWritten, height);
+        pixWritten = min(pixWritten, height);
         destOffset = destRowStartByte;
 
         for (xOffset = xOffsetStart, colsToWrite = width;
@@ -198,10 +198,10 @@ void SpriteRenderer::drawLine(int16_t xStart, int16_t yStart,
                               int16_t xEnd, int16_t yEnd) {
     int32_t xDiff = xEnd - xStart;
     int32_t yDiff = yEnd - yStart;
-    int32_t absX = ABS(xDiff);
-    int32_t absY = ABS(yDiff);
-    int32_t incrementX = SGNZ(xDiff);
-    int32_t incrementY = SGNZ(yDiff);
+    int32_t absX = abs(xDiff);
+    int32_t absY = abs(yDiff);
+    int32_t incrementX = Utils::sgnz(xDiff);
+    int32_t incrementY = Utils::sgnz(yDiff);
 
     if (absX > absY) {
         int32_t d = (absY << 1) - absX;

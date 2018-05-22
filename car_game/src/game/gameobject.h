@@ -14,7 +14,7 @@ class GameObject {
     FP32        xPos;
     FP32        zPos;
     // Screen coordinates
-    int16_t     screenX;
+    int32_t     screenX;
     int16_t     screenY;
     uint8_t     screenW;
 

@@ -38,9 +38,9 @@ constexpr FP32 g_gearRatios[] PROGMEM = {
 #define CONSTANT_RESISTANCE    FP32(-1500)
 
 FP32 RPM2Torque(const FP32& rpm) {
-    if (rpm < Defs::MIN_RPM) {
+    if (rpm < Defs::MinRPM) {
         return FP32(static_cast<const void*>(&g_torques[0]));
-    } else if (rpm > Defs::MAX_RPM) {
+    } else if (rpm > Defs::MaxRPM) {
         return FP32(0);
     }
     int32_t rpmI = rpm.getInt();
@@ -71,15 +71,15 @@ void Car::reset(const FP32& z) {
     throttle = 0;
     clutch = false;
 
-    wheels.init(GetSprite(SPRITE_CAR));
-    reflection.init(GetSprite(SPRITE_CAR));
-    wheels.setAnimation(CAR_WHEELS_ANIM, 0, true);
-    reflection.setAnimation(CAR_REFLECTION_ANIM, 0, true);
+    wheels.init(GetSprite(Defs::SpriteCar));
+    reflection.init(GetSprite(Defs::SpriteCar));
+    wheels.setAnimation(Defs::AnimCarWheels, 0, true);
+    reflection.setAnimation(Defs::AnimCarReflection, 0, true);
 }
 
 void Car::shiftGear(bool up = true) {
     if (up == true) {
-        if (gear < MAX_GEAR) {
+        if (gear < Defs::MaxGear) {
             gear++;
         }
     } else {
@@ -90,10 +90,10 @@ void Car::shiftGear(bool up = true) {
 }
 
 void Car::draw(SpriteRenderer* renderer) {
-    GetSprite(SPRITE_CAR)->drawAnimationFrame(renderer, CAR_BODY_ANIM,
+    GetSprite(Defs::SpriteCar)->drawAnimationFrame(renderer, Defs::AnimCarBody,
                                               0, screenX, screenY, 0);
-    wheels.draw(renderer, screenX - 12, screenY);
-    wheels.draw(renderer, screenX + 13, screenY);
+    wheels.draw(renderer, screenX - 34, screenY);
+    wheels.draw(renderer, screenX - 10, screenY);
     reflection.draw(renderer, screenX, screenY);
 }
 
@@ -129,7 +129,7 @@ void Car::updateEngine(int16_t dt) {
         forwardForce = (throttle * engineTorque * getGearRatio(gear)) /
                         WHEEL_RADIUS;
     } else {
-        targetEngineRPM = (Defs::MIN_RPM) + (throttle * Defs::MAX_RPM);
+        targetEngineRPM = (Defs::MinRPM) + (throttle * Defs::MaxRPM);
         if (engineRPM < targetEngineRPM) {
             engineRPM = (targetEngineRPM + engineRPM) / 2;
         } else {
@@ -148,7 +148,7 @@ void Car::updateEngine(int16_t dt) {
 
 void Car::updateWheelsAnim(int16_t dt) {
     int16_t newDT = ((wheelsRPM * (int32_t)dt) / 125).getInt();
-    CLAMP_UPPER(newDT, 200);
+    newDT = Utils::upperClamp(newDT, 200);
     wheels.update(newDT);
 }
 
@@ -157,9 +157,3 @@ void Car::update(int16_t dt) {
     updateWheelsAnim(dt);
     reflection.update(dt >> 1);
 }
-
-int Car::getMaxGear() {
-    return MAX_GEAR;
-}
-
-
