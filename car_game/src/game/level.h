@@ -104,8 +104,10 @@ class Level {
     static Level::BackgroundLayer* bgLayers[];
 
     enum LevelState : uint8_t {
+        Invalid,
         Countdown,
         Race,
+        PlayerDead,
         Result
     };
 
@@ -124,18 +126,22 @@ class Level {
     bool            showScreenAnim;
     Car*            playerCar;
     Car*            enemyCar;
-
+    int8_t          scrAnimX;
+    int8_t          scrAnimY;
     int32_t         levelTimer;
+    int16_t         stateCounter;
 
-    void drawHUD(SpriteRenderer* renderer);
-    void drawCarHUD(SpriteRenderer* renderer, int16_t x, int16_t y);
-    void drawTimer(SpriteRenderer* renderer, int16_t x, int16_t y);
-    void updateState(int16_t dt);
-    void updateGeneral(int16_t dt);
-    void updateCamera();
+    inline void drawHUD(SpriteRenderer* renderer);
+    inline void drawCarHUD(SpriteRenderer* renderer, int16_t x, int16_t y);
+    inline void drawTimer(SpriteRenderer* renderer, int16_t x, int16_t y);
+    inline void updateState(int16_t dt);
+    inline void updateGeneral(int16_t dt);
+    inline void updateCamera();
+    void startScreenAnim(int8_t x, int8_t y, uint8_t anim);
     void foreachGameObject(auto func);
     void drawMarker(SpriteRenderer* renderer, const FP32& worldPos);
     void drawGameMarkers(SpriteRenderer* renderer);
+    void setState(LevelState newState);
 };
 
 #endif  // LEVEL_H_

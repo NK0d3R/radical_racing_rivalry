@@ -27,20 +27,26 @@ class Car : public GameObject {
     void pedalToTheMetal(bool on);
     void setClutch(bool on)             { clutch = on; }
     bool isClutched()                   { return clutch; }
+    bool isAlive()                      { return alive; }
     int getMaxGear()                    { return Defs::MaxGear; }
+    void destroy();
 
  protected:
-    int8_t  gear;
+    int8_t gear;
+    int8_t lastReflectionPos;
     FP32 engineRPM;
     FP32 wheelsRPM;
     FP32 speed;
     FP32 throttle;
     bool clutch;
+    bool alive;
     SpriteAnimator reflection;
     SpriteAnimator wheels;
-    void updateEngine(int16_t dt);
-    void updateWheelsAnim(int16_t dt);
-    bool engineIsConnected() { return gear > 0 && clutch == false; }
+    SpriteAnimator explosion;
+    inline void updateEngine(int16_t dt);
+    inline void updateWheelsAnim(int16_t dt);
+    inline void updateReflectionAnim(int16_t dt);
+    bool engineIsConnected() { return gear > 0 && clutch == false && alive; }
 };
 
 #endif  // CAR_H_

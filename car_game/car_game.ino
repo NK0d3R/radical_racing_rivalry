@@ -1,4 +1,4 @@
-// Copyright 2018 Catalin G. Manciu
+  // Copyright 2018 Catalin G. Manciu
 
 #include "src/stdinc.h"
 #include "src/defs.h"
@@ -30,6 +30,10 @@ void setAppState(AppState newState) {
                 menu.set(getMenuData(0), 3, 100, Defs::AnimMenuMain);
                 menu.setItemOption(0, level.getGameMode());
                 menu.setItemOption(0, level.getGearMode());
+                menu.restart();
+            break;
+            case AfterGameMenu:
+                menu.set(getMenuData(1), 2, 80, 0);
                 menu.restart();
             break;
         }
@@ -86,6 +90,19 @@ void loop() {
             level.updateControls(buttonsState, oldButtonsState);
             level.update(33);
             level.draw(&renderer);
+        break;
+        case AfterGameMenu:
+            menu.updateControls(buttonsState, oldButtonsState);
+            menu.draw(&renderer, (Defs::ScreenW >> 1), 16);
+            switch (menu.getAction()) {
+                case Defs::MenuActionRestart:
+                    level.restart();
+                    setAppState(Ingame);
+                break;
+                case Defs::MenuActionBackToMM:
+                    setAppState(MainMenu);
+                break;
+            }
         break;
     }
     app.display();

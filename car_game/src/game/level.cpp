@@ -3,6 +3,7 @@
 #include "level.h"
 #include "car.h"
 #include "enemycar.h"
+#include "../res/stringmgr.h"
 #include "../engine/renderer.h"
 #include "../res/sprites.h"
 
@@ -150,6 +151,7 @@ Level::Level() {
     playerCar = new Car(this, 0, FP32(0), 43);
     enemyCar = new EnemyCar(this, 0, FP32(0), 43);
     screenAnim.init(GetSprite(Defs::SpriteCar));
+    state = Invalid;
 }
 
 void Level::restart() {
@@ -159,12 +161,34 @@ void Level::restart() {
         enemyCar->reset(FP32(0.3f));
         enemyCar->updateScreenY();
     }
-    currentGearShift->reset();
-    cameraPosition = -200;
     levelTimer = 0;
+    currentGearShift->reset();
+    setState(Countdown);
+}
+
+void Level::startScreenAnim(int8_t x, int8_t y, uint8_t anim) {
+    scrAnimX = x;
+    scrAnimY = y;
     showScreenAnim = true;
-    screenAnim.setAnimation(Defs::AnimCarCountdown, 0, false);
-    state = Countdown;
+    screenAnim.setAnimation(anim, 0, false);
+}
+
+void Level::setState(LevelState newState) {
+    if (newState != state) {
+        switch (newState) {
+            case Countdown:
+                startScreenAnim(Defs::ScreenW / 2, Defs::ScreenH / 2,
+                                Defs::AnimCarCountdown);
+                cameraPosition = -200;
+            break;
+            case PlayerDead:
+                startScreenAnim(120, 62,
+                                Defs::AnimCarExplosion);
+                stateCounter = 0;
+            break;
+        }
+        state = newState;
+    }
 }
 
 void Level::foreachGameObject(auto func) {
@@ -188,7 +212,7 @@ void Level::draw(SpriteRenderer* renderer) {
     }
 
     if (showScreenAnim) {
-        screenAnim.draw(renderer, Defs::ScreenW / 2, Defs::ScreenH / 2);
+        screenAnim.draw(renderer, scrAnimX, scrAnimY);
     }
 }
 
@@ -254,11 +278,12 @@ void Level::drawHUD(SpriteRenderer* renderer) {
 }
 
 void Level::drawTimer(SpriteRenderer* renderer, int16_t x, int16_t y) {
-    static char timerStr[10] = {0};
+    char* timerStr = getStringBuffer();
     uint16_t sec = levelTimer / 1000;
     uint16_t msec = levelTimer - (sec * 1000);
     uint16_t min = sec / 60;
     sec -= min * 60;
+    timerStr[9] = 0;
     Utils::fastGetDigits(msec, &timerStr[8], 3);
     Utils::fastGetDigits(sec, &timerStr[4], 2);
     Utils::fastGetDigits(min, &timerStr[1], 2);
@@ -270,6 +295,9 @@ void Level::drawTimer(SpriteRenderer* renderer, int16_t x, int16_t y) {
 
 void Level::updateControls(uint8_t buttonsState, uint8_t oldButtonsState) {
     uint8_t changedButtons = (buttonsState ^ oldButtonsState);
+    if (state != Race) {
+        return;
+    }
     playerCar->pedalToTheMetal(buttonsState & A_BUTTON);
     playerCar->setClutch(buttonsState & B_BUTTON);
     if (playerCar->isClutched()) {
@@ -289,6 +317,8 @@ void Level::updateControls(uint8_t buttonsState, uint8_t oldButtonsState) {
         int8_t shiftResult = currentGearShift->getShiftResult();
         if (shiftResult != -1) {
             playerCar->shiftGear(shiftResult);
+        } else {
+            playerCar->destroy();
         }
     }
     uint8_t resetMask = (A_BUTTON | B_BUTTON | LEFT_BUTTON);
@@ -305,12 +335,15 @@ void Level::update(int16_t dt) {
 void Level::updateState(int16_t dt) {
     switch (state) {
         case Countdown:
-            screenAnim.update(dt);
             if (screenAnim.animPlaying() == false) {
                 raceStart();
             }
         break;
         case Race:
+            if (playerCar->isAlive() == false) {
+                setState(PlayerDead);
+                break;
+            }
             if (playerCar->isClutched()) {
                 currentGearShift->update();
             }
@@ -322,12 +355,22 @@ void Level::updateState(int16_t dt) {
                 levelTimer = 1000000000;
             }
         break;
+        case PlayerDead:
+            if (screenAnim.animPlaying() == false) {
+                showScreenAnim = false;
+            }
+            stateCounter++;
+            if (stateCounter > 120) {
+                setAppState(AfterGameMenu);
+                setState(Invalid);
+            }
+        break;
     }
 }
 
 void Level::raceStart() {
     foreachGameObject([&](GameObject* obj) { obj->onRaceStart(); });
-    state = Race;
+    setState(Race);
 }
 
 void Level::raceEnd() {
@@ -335,6 +378,9 @@ void Level::raceEnd() {
 }
 
 void Level::updateGeneral(int16_t dt) {
+    if (showScreenAnim) {
+        screenAnim.update(dt);
+    }
     foreachGameObject([&](GameObject* obj) { obj->update(dt); });
     updateCamera();
     foreachGameObject([&](GameObject* obj) { obj->updateScreenX(); });

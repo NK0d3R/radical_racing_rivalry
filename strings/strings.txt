@@ -1,0 +1,2 @@
+Igm_Restart  "Restart"
+Igm_BackToMM "Main Menu"

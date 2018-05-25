@@ -70,11 +70,13 @@ void Car::reset(const FP32& z) {
     gear = 0;
     throttle = 0;
     clutch = false;
+    alive = true;
+    lastReflectionPos = 0;
 
     wheels.init(GetSprite(Defs::SpriteCar));
     reflection.init(GetSprite(Defs::SpriteCar));
+    explosion.init(GetSprite(Defs::SpriteCar));
     wheels.setAnimation(Defs::AnimCarWheels, 0, true);
-    reflection.setAnimation(Defs::AnimCarReflection, 0, true);
 }
 
 void Car::shiftGear(bool up = true) {
@@ -89,12 +91,22 @@ void Car::shiftGear(bool up = true) {
     }
 }
 
+void Car::destroy() {
+     alive = false;
+     explosion.setAnimation(Defs::AnimCarExplosion, 0, false);
+}
+
 void Car::draw(SpriteRenderer* renderer) {
     GetSprite(Defs::SpriteCar)->drawAnimationFrame(renderer, Defs::AnimCarBody,
                                               0, screenX, screenY, 0);
     wheels.draw(renderer, screenX - 34, screenY);
     wheels.draw(renderer, screenX - 10, screenY);
-    reflection.draw(renderer, screenX, screenY);
+    if (reflection.animPlaying()) {
+        reflection.draw(renderer, screenX, screenY);
+    }
+    if (explosion.animPlaying()) {
+        explosion.draw(renderer, screenX, screenY);
+    }
 }
 
 void Car::pedalToTheMetal(bool on) {
@@ -121,8 +133,9 @@ void Car::updateEngine(int16_t dt) {
     FP32 engineTorque = 0;
     FP32 fpDT = FP32(dt);
 
+    wheelsRPM = (speed * 60) / WHEEL_CIRCUMFERENCE;
+
     if (engineConnected) {
-        wheelsRPM = (speed * 60) / WHEEL_CIRCUMFERENCE;
         targetEngineRPM = getGearRatio(gear) * wheelsRPM;
         engineRPM = (targetEngineRPM + engineRPM) / 2;
         engineTorque = RPM2Torque(engineRPM.getInt());
@@ -152,8 +165,18 @@ void Car::updateWheelsAnim(int16_t dt) {
     wheels.update(newDT);
 }
 
+void Car::updateReflectionAnim(int16_t dt) {
+    int8_t crtReflectionPos = xPos.getInt() / 250;
+    if (lastReflectionPos != crtReflectionPos) {
+        reflection.setAnimation(Defs::AnimCarReflection, 0, false);
+        lastReflectionPos = crtReflectionPos;
+    }
+    reflection.update(((Utils::mpsToKph(speed) * (int32_t)dt) / 120).getInt());
+}
+
 void Car::update(int16_t dt) {
     updateEngine(dt);
     updateWheelsAnim(dt);
-    reflection.update(dt >> 1);
+    updateReflectionAnim(dt);
+    explosion.update(dt);
 }

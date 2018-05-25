@@ -15,7 +15,8 @@ int32_t getFrameCounter();
 enum AppState {
     Invalid,
     MainMenu,
-    Ingame
+    Ingame,
+    AfterGameMenu
 };
 
 void setAppState(AppState newState);
@@ -101,7 +102,9 @@ struct Defs {
 
     // Menu actions
     enum : uint8_t {
-        MenuActionStart = 1
+        MenuActionStart = 1,
+        MenuActionRestart,
+        MenuActionBackToMM,
     };
 
     static constexpr int8_t BgChopperMarginOffset = 15;

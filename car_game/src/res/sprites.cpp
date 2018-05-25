@@ -7,11 +7,11 @@
 Sprite sprites[Defs::SpritesNb];
 Font fonts[Defs::FontsNb];
 
-Sprite* GetSprite(int8_t idx) {
+static inline Sprite* GetSprite(int8_t idx) {
     return &sprites[idx];
 }
 
-Font* GetFont(int8_t idx) {
+static inline Font* GetFont(int8_t idx) {
     return &fonts[idx];
 }
 

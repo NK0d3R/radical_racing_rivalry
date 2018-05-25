@@ -211,7 +211,6 @@ uint16_t Font::getStringWidth(const char* string, int8_t charSpacing) {
     uint8_t  idx = 0;
     uint8_t  crtFrame;
     uint16_t crtFrameW;
-    static int test = 1;
 
     while (string[idx] && idx < MAX_STR_SIZE_BUFF) {
         if (string[idx] < mappingLen) {

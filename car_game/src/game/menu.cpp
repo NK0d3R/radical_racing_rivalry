@@ -1,6 +1,7 @@
 // Copyright 2018 Catalin G. Manciu
 
 #include "menu.h"
+#include "../res/stringmgr.h"
 #include "../res/sprites.h"
 #include "../engine/ardusprite.h"
 #include "../engine/renderer.h"
@@ -59,17 +60,21 @@ void Menu::draw(SpriteRenderer* renderer, int16_t x, int16_t y) {
         if (itemOptionCnt) {
             visualID += getItemOption(idx);
         }
+        y += (height >> 1);
+        if (crtSelection == idx) {
+            drawSpriteElementBackground(renderer, x, y, height,
+                                        itemOptionCnt > 0);
+        }
         if (itemSpriteFlag(itemData) == 1) {
-            y += (height >> 1);
-            if (crtSelection == idx) {
-                drawSpriteElementBackground(renderer, x, y, height,
-                                            itemOptionCnt > 0);
-            }
             Sprite* spr = GetSprite(Defs::SpriteMenu);
             spr->drawAnimationFrame(renderer, animation, visualID, x,
                                     y, 0);
-            y += (height >> 1);
+        } else {
+            Font* font = GetFont(Defs::FontMain);
+            font->drawString(renderer, getString(visualID), x, y,
+                             ANCHOR_HCENTER | ANCHOR_VCENTER);
         }
+        y += (height >> 1);
     }
 }
 
@@ -138,7 +143,14 @@ PROGMEM const int16_t mainmenu[] = {
     Menu::itemDataCreate(Defs::MenuActionStart, 0, 1, 4, 14)
 };
 
+PROGMEM const int16_t endracemenu[] = {
+    Menu::itemDataCreate(Defs::MenuActionRestart, 0, 0,
+                         Strings::Igm_Restart, 16),
+    Menu::itemDataCreate(Defs::MenuActionBackToMM, 0, 0,
+                         Strings::Igm_BackToMM, 16)
+};
+
 int16_t* getMenuData(uint8_t menu) {
-    static int16_t* menus[] = { mainmenu };
+    static int16_t* menus[] = { mainmenu, endracemenu };
     return menus[menu];
 }
