@@ -107,7 +107,6 @@ class Level {
         Invalid,
         Countdown,
         Race,
-        PlayerDead,
         Result
     };
 
@@ -116,32 +115,59 @@ class Level {
         Duel,
     };
 
+    enum EndResultType : int8_t {
+        NoResult = -1,
+        PlayerDeadGearbox = 0,
+        PlayerDeadEngine,
+        RaceEndLose,
+        RaceEndTimeAttack,
+        RaceEndWin
+    };
+
+    enum ScreenAnimType : int8_t {
+        None,
+        Sprite,
+        Flag
+    };
+
     LevelState      state = Countdown;
     GameMode        mode = TimeAttack;
     GearShiftAuto   autoGearShift;
     GearShiftManual manualGearShift;
     GearShift*      currentGearShift = &autoGearShift;
+    EndResultType   endResult = NoResult;
 
     SpriteAnimator  screenAnim;
-    bool            showScreenAnim;
+    ScreenAnimType  screenAnimType;
     Car*            playerCar;
     Car*            enemyCar;
     int8_t          scrAnimX;
     int8_t          scrAnimY;
-    int32_t         levelTimer;
-    int16_t         stateCounter;
+    uint32_t        levelTimer;
+    uint8_t         stateCounter;
+    uint8_t         maxStateCounter;
+    bool            newRecord;
 
+    static constexpr uint8_t kAccelButton = B_BUTTON;
+    static constexpr uint8_t kClutchButton = A_BUTTON;
+
+    void drawEndFlag(SpriteRenderer* renderer, int16_t x, int16_t y, uint8_t w);
     inline void drawHUD(SpriteRenderer* renderer);
     inline void drawCarHUD(SpriteRenderer* renderer, int16_t x, int16_t y);
-    inline void drawTimer(SpriteRenderer* renderer, int16_t x, int16_t y);
+    inline void drawTimer(SpriteRenderer* renderer, int16_t x, int16_t y,
+                          uint8_t anchor = (ANCHOR_BOTTOM | ANCHOR_LEFT));
+    inline void drawRecord(SpriteRenderer* renderer, int16_t x, int16_t y);
     inline void updateState(int16_t dt);
     inline void updateGeneral(int16_t dt);
     inline void updateCamera();
-    void startScreenAnim(int8_t x, int8_t y, uint8_t anim);
+    void startScreenAnim(int8_t x, int8_t y, ScreenAnimType type,
+                         uint8_t anim = 0, bool loop = false);
     void foreachGameObject(auto func);
     void drawMarker(SpriteRenderer* renderer, const FP32& worldPos);
     void drawGameMarkers(SpriteRenderer* renderer);
     void setState(LevelState newState);
+    void setEndRace(EndResultType type);
+    void checkRecord();
 };
 
 #endif  // LEVEL_H_

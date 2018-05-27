@@ -8,5 +8,6 @@
 
 uint8_t* getString(Strings str);
 uint8_t* getStringBuffer();
+uint8_t  getStringLen(Strings str);
 
 #endif  // STRINGMGR_H_

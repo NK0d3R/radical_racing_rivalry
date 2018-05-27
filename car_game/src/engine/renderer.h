@@ -7,11 +7,11 @@
 #include "../defs.h"
 #include "ardusprite.h"
 
-#define BUFFER_CAPACITY     (128)
-
 class SpriteRenderer {
  private:
+#if USE_RENDERER_LINE_BUFFER
     static uint8_t lineBuffer[BUFFER_CAPACITY];
+#endif
     Rect clip;
     uint8_t* frameBuffer;
     uint16_t frameStride;
@@ -31,6 +31,10 @@ class SpriteRenderer {
                             uint8_t targetY, int8_t width,
                             int8_t height, uint8_t initialWidth,
                             uint8_t initialHeight, uint8_t flags);
+    void fastDrawVerticalPattern(uint8_t pattern, int16_t x, int16_t y);
+    void updatePixelBatch(uint8_t* pix, uint8_t data, uint8_t mask) {
+        *pix = ((data & mask) | (*pix & ~mask));
+    }
     inline uint8_t bitReverse(uint8_t byte);
     inline uint8_t leftMask(uint8_t nbBits);
     inline uint8_t rightMask(uint8_t nbBits);

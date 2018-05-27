@@ -7,7 +7,7 @@
 #include "../engine/renderer.h"
 
 // Torque (in Nm)
-constexpr FP32 g_torques[] PROGMEM = {
+constexpr FP32 kTorques[] PROGMEM = {
     FP32(225),                // 1000 RPM
     FP32(400),                // 2000 RPM
     FP32(450),                // 3000 RPM
@@ -18,47 +18,47 @@ constexpr FP32 g_torques[] PROGMEM = {
     FP32(320)                 // 8000 RPM
 };
 
-#define NB_TORQUES  (sizeof(g_torques)/sizeof(FP32))
+#define NB_TORQUES  (sizeof(kTorques)/sizeof(FP32))
 
-constexpr FP32 g_gearRatios[] PROGMEM = {
+constexpr FP32 kGearRatios[] PROGMEM = {
     FP32(0),
     FP32(9.13f),
     FP32(6.65f),
     FP32(4.45f),
-    FP32(3.51f),
-    FP32(2.89f)
+    FP32(3.90f),
+    FP32(3.30f)
 };
 
 #define WHEEL_CIRCUMFERENCE    FP32(2.0f * 3.141539f * 0.33f)
 #define WHEEL_RADIUS           FP32(0.33f)
 #define VEHICLE_MASS           FP32(1600)
 
-#define WIND_RESISTANCE_MULT   -35
+#define WIND_RESISTANCE_MULT   -32
 #define WIND_RESISTANCE_DIV    100
-#define CONSTANT_RESISTANCE    FP32(-1500)
+#define CONSTANT_RESISTANCE    FP32(-1200)
 
 FP32 RPM2Torque(const FP32& rpm) {
     if (rpm < Defs::MinRPM) {
-        return FP32(static_cast<const void*>(&g_torques[0]));
+        return FP32(static_cast<const void*>(&kTorques[0]));
     } else if (rpm > Defs::MaxRPM) {
         return FP32(0);
     }
     int32_t rpmI = rpm.getInt();
     int32_t idx = (rpmI / 1000);
     if (idx == (NB_TORQUES - 1)) {
-        return FP32(static_cast<const void*>(&g_torques[idx]));
+        return FP32(static_cast<const void*>(&kTorques[idx]));
     }
     int32_t rpmOver = rpmI - (idx * 1000);
     if (rpmOver == 0) {
-        return FP32(static_cast<const void*>(&g_torques[idx]));
+        return FP32(static_cast<const void*>(&kTorques[idx]));
     }
-    FP32 tStart(static_cast<const void*>(&g_torques[idx]));
-    FP32 tEnd(static_cast<const void*>(&g_torques[idx + 1]));
+    FP32 tStart(static_cast<const void*>(&kTorques[idx]));
+    FP32 tEnd(static_cast<const void*>(&kTorques[idx + 1]));
     return tStart + (((tEnd - tStart) * rpmOver) / 1000);
 }
 
 FP32 getGearRatio(int16_t idx) {
-    return FP32(&g_gearRatios[idx]);
+    return FP32(&kGearRatios[idx]);
 }
 
 void Car::reset(const FP32& z) {
@@ -69,6 +69,7 @@ void Car::reset(const FP32& z) {
     speed = 0;
     gear = 0;
     throttle = 0;
+    overheatCounter = 0;
     clutch = false;
     alive = true;
     lastReflectionPos = 0;
@@ -157,6 +158,18 @@ void Car::updateEngine(int16_t dt) {
     speed += (accel * fpDT) / 1000;
     speed.clampLower(FP32(0));
     xPos += (speed * fpDT) / 1000;
+
+    if (alive) {
+        int32_t engineRPMi = engineRPM.getInt();
+        if (engineRPMi > 7200) {
+            overheatCounter += (engineRPMi - 7000) / 200;
+            if (overheatCounter > 40) {
+                destroy();
+            }
+        } else {
+            overheatCounter = 0;
+        }
+    }
 }
 
 void Car::updateWheelsAnim(int16_t dt) {

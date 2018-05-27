@@ -28,12 +28,14 @@ class Car : public GameObject {
     void setClutch(bool on)             { clutch = on; }
     bool isClutched()                   { return clutch; }
     bool isAlive()                      { return alive; }
-    int getMaxGear()                    { return Defs::MaxGear; }
+    int8_t getMaxGear()                 { return Defs::MaxGear; }
     void destroy();
+    int getOverheat()                   { return overheatCounter; }
 
  protected:
     int8_t gear;
     int8_t lastReflectionPos;
+    uint8_t overheatCounter;
     FP32 engineRPM;
     FP32 wheelsRPM;
     FP32 speed;

@@ -203,7 +203,7 @@ void Font::create(const uint8_t* data, const uint8_t* mapData, uint8_t mapLen,
     Sprite::create(data);
 }
 
-#define MAX_STR_SIZE_BUFF   (64)
+#define MAX_STR_SIZE_BUFF   (32)
 uint8_t s_strSizeBuff[MAX_STR_SIZE_BUFF];
 
 uint16_t Font::getStringWidth(const char* string, int8_t charSpacing) {
@@ -216,7 +216,9 @@ uint16_t Font::getStringWidth(const char* string, int8_t charSpacing) {
         if (string[idx] < mappingLen) {
             crtFrame = pgm_read_byte(&mapping[string[idx]]);
             if (crtFrame != defaultFrame) {
-                crtFrameW = GET_W_FROM_SIZE(measureAnimationFrame(0, crtFrame));
+                crtFrameW = GET_W_FROM_SIZE(
+                                measureAnimationFrame(0, crtFrame)) +
+                            charSpacing;
             } else {
                 crtFrameW = spaceWidth;
             }
@@ -226,10 +228,6 @@ uint16_t Font::getStringWidth(const char* string, int8_t charSpacing) {
         s_strSizeBuff[idx] = crtFrameW;
         width += crtFrameW;
         ++idx;
-
-        if (string[idx]) {
-            width += charSpacing;
-        }
     }
     return width;
 }

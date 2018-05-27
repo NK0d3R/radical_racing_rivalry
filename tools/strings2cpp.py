@@ -1,10 +1,14 @@
+import math
 import argparse
 import struct
 import re
 import os
 
+MAX_STRLEN = 31
+SIZE_BITS = int(math.log(MAX_STRLEN + 1, 2))
+OFFSET_BITS = 16 - SIZE_BITS
+
 def writeHeader(filepath, guardname, copyright, data, tab_str):
-    
     with open(filepath, "wt") as output:
         if copyright != None:
             output.write(copyright)
@@ -27,15 +31,15 @@ def writeDataFile(filepath, guardname, copyright, data, maxitems, tab_str):
                      (guardname, guardname))
         output.write("PROGMEM const uint16_t STRINGINFO[] = {\n")
         crtoffset = 0
-        offsetmask = 2 ** 10 - 1
-        sizemask = 2 ** 6 - 1
+        offsetmask = 2 ** OFFSET_BITS - 1
+        sizemask = 2 ** SIZE_BITS - 1
         for idx, item in enumerate(data):
             crtsize = len(item[1])
             if crtoffset > offsetmask or crtsize > sizemask:
                 raise Exception("Strings size or index" +
-                                "cannot be represented: %d %d" %
+                                " cannot be represented: %d %d" %
                                 (crtoffset, crtsize))
-            crtvalue = crtoffset | (crtsize << 10)
+            crtvalue = crtoffset | (crtsize << OFFSET_BITS)
             output.write("%s%s" % (tab_str, format(crtvalue, "#06x")))
             if idx < len(data) - 1:
                 output.write(",\n")
@@ -103,6 +107,9 @@ def main():
             if len(data[1]) == 0:
                 print("Warning: Empty string at line %d" % (idx))
                 continue
+            if len(data[1]) > MAX_STRLEN:
+                raise Exception("String: %s too long (%d)" %
+                                (data[0], len(data[1])))
             stringdata.append(data)
 
     writeHeader(os.path.join(dirname, basename + ".h"), guardname,

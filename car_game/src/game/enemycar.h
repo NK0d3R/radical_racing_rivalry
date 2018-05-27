@@ -20,7 +20,8 @@ class EnemyCar final : public Car {
         Invalid,
         Wait,
         SwitchingGears,
-        Accelerating
+        Accelerating,
+        Dead
     };
 
     AIState state;

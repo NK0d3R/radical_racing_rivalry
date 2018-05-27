@@ -10,18 +10,18 @@ void EnemyCar::reset(const FP32& z) {
 
 void EnemyCar::setState(AIState newState) {
     if (state != newState) {
-        state = newState;
-        switch (state) {
+        switch (newState) {
             case SwitchingGears: {
                 stateTimer = random(133, 333);
                 setClutch(true);
                 shiftGear(true);
             } break;
             case Accelerating: {
-                gearShiftRPM = random(5000, 8000);
+                gearShiftRPM = 7200 + random(-600, 300);
                 setClutch(false);
             } break;
         }
+        state = newState;
     }
 }
 
@@ -36,10 +36,12 @@ void EnemyCar::update(int16_t dt) {
         case Accelerating: {
             if (getRPM().getInt() > gearShiftRPM && getGear() < getMaxGear()) {
                 setState(SwitchingGears);
-            } else {
-                pedalToTheMetal(true);
             }
         } break;
+    }
+    pedalToTheMetal(state == Accelerating);
+    if (!alive) {
+        setState(Dead);
     }
     Car::update(dt);
 }

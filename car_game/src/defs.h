@@ -6,6 +6,11 @@
 #include "engine/primitives.h"
 #include "engine/fixedpoint.h"
 
+#define USE_RENDERER_LINE_BUFFER    (0)
+#if USE_RENDERER_LINE_BUFFER
+    #define BUFFER_CAPACITY         (128)
+#endif
+
 typedef FPValue<int32_t, int64_t, 8> FP32;
 typedef VectorT<FP32> Vector;
 typedef LineT<FP32> Line;
@@ -20,6 +25,11 @@ enum AppState {
 };
 
 void setAppState(AppState newState);
+
+uint32_t getTimeRecord(uint8_t gearMode);
+void updateTimeRecord(uint8_t gearMode, uint32_t newValue);
+void saveSave();
+void saveLoad();
 
 struct Defs {
     static constexpr int16_t ScreenW = 128;
@@ -49,7 +59,8 @@ struct Defs {
     enum : uint8_t {
         BackgroundSun = 0,
         BackgroundLayer1,
-        BackgroundLayer2
+        BackgroundLayer2,
+        BackgroundLayer3
     };
 
     // SpriteCar anims
@@ -62,7 +73,8 @@ struct Defs {
         AnimCarSpeedFont,
         AnimCarGearsAuto,
         AnimCarGearsManual,
-        AnimCarCountdown
+        AnimCarCountdown,
+        AnimCarFlag
     };
 
     // AnimCarRPMHud frames
@@ -116,12 +128,18 @@ struct Defs {
     static constexpr int8_t CarSpeedFontW = 5;
 
     static constexpr uint8_t MainFontHeight = 7;
-    static constexpr uint8_t MainFontSpaceW = 5;
+    static constexpr uint8_t MainFontSpaceW = 4;
 
     static constexpr int16_t LevelActionAreaTop = 45;
     static constexpr int16_t LevelActionAreaBottom = 63;
 
     static constexpr int8_t MaxGear = 5;
+
+    static constexpr int16_t EndFlagW = 96;
+    static constexpr int16_t EndFlagH = 16;
+
+    static constexpr int16_t ResultTextY = 26;
+    static constexpr int16_t RecordTextY = 38;
 
     static const FP32 FPHalfScrW;
     static const FP32 MinRPM;
@@ -148,7 +166,8 @@ struct Utils {
     template<typename T>
     static T upperClamp(T x, T limit) { return x > limit ? limit : x; }
 
-    static void fastGetDigits(uint16_t value, char* str, uint16_t nbDigits);
+    static void fastGetDigits(uint16_t value, char* dest, uint16_t nbDigits);
+    static void formatTime(int32_t time, char* dest);
 };
 
 #endif  // DEFS_H__

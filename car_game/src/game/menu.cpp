@@ -139,7 +139,7 @@ void Menu::restart() {
 
 PROGMEM const int16_t mainmenu[] = {
     Menu::itemDataCreate(0, 1, 1, 0, 24),
-    Menu::itemDataCreate(0, 1, 1, 2, 20),
+    Menu::itemDataCreate(0, 1, 1, 2, 18),
     Menu::itemDataCreate(Defs::MenuActionStart, 0, 1, 4, 14)
 };
 
