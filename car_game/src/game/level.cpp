@@ -155,9 +155,9 @@ Level::Level() {
 }
 
 void Level::restart() {
-    playerCar->reset(mode == Duel ? FP32(0.9f) : FP32(0.6f));
+    playerCar->reset(getGameMode() == Duel ? FP32(0.9f) : FP32(0.6f));
     playerCar->updateScreenY();
-    if (mode == Duel) {
+    if (getGameMode() == Duel) {
         enemyCar->reset(FP32(0.3f));
         enemyCar->updateScreenY();
     }
@@ -209,7 +209,7 @@ void Level::setState(LevelState newState) {
 }
 
 void Level::foreachGameObject(auto func) {
-    if (mode == Duel) {
+    if (getGameMode() == Duel) {
         func(enemyCar);
     }
     func(playerCar);
@@ -235,13 +235,7 @@ void Level::draw(SpriteRenderer* renderer) {
     }
 
     if (state == Result) {
-        GetFont(Defs::FontMain)->drawString(renderer,
-                                            getString(Dead_Gearbox +
-                                            static_cast<Strings>(endResult)),
-                                            Defs::ScreenW / 2,
-                                            Defs::ResultTextY,
-                                            ANCHOR_VCENTER | ANCHOR_HCENTER);
-        drawRecord(renderer, Defs::ScreenW / 2, Defs::RecordTextY);
+        drawResult(renderer, Defs::ScreenW / 2, Defs::ResultTextY);
     }
 }
 
@@ -299,27 +293,37 @@ void Level::drawHUD(SpriteRenderer* renderer) {
     } else {
         drawCarHUD(renderer, 94, 64);
     }
-    if (mode == TimeAttack) {
+    if (getGameMode() == TimeAttack) {
         drawTimer(renderer, 0, 64);
     }
 }
 
 void Level::drawTimer(SpriteRenderer* renderer, int16_t x, int16_t y,
-                      uint8_t anchor) {
+                      uint8_t anchor, bool addSign) {
     char* dest = getStringBuffer();
-    Utils::formatTime(levelTimer, dest);
+    Utils::formatTime(levelTimer, dest, addSign);
     GetFont(Defs::FontMain)->drawString(renderer, dest, x, y, anchor);
 }
 
-void Level::drawRecord(SpriteRenderer* renderer, int16_t x, int16_t y) {
-    if (newRecord == false) return;
-    if (getGameMode() == TimeAttack) {
+void Level::drawResult(SpriteRenderer* renderer, int16_t x, int16_t y) {
+    GetFont(Defs::FontMain)->drawString(renderer,
+                                    getString(Dead_Gearbox +
+                                    static_cast<Strings>(endResult)),
+                                    Defs::ScreenW / 2,
+                                    y,
+                                    ANCHOR_VCENTER | ANCHOR_HCENTER);
+    y += 12;
+    if (newRecord) {
         if ((getFrameCounter() & 0xF) < 7) {
             GetFont(Defs::FontMain)->drawString(
                     renderer, getString(Strings::NewRecord),
                     x, y, ANCHOR_TOP | ANCHOR_HCENTER);
         }
-        drawTimer(renderer, x, y + 8, ANCHOR_TOP | ANCHOR_HCENTER);
+        y += 8;
+    }
+    if (endResult > PlayerDeadEngine) {
+        drawTimer(renderer, x, y, ANCHOR_TOP | ANCHOR_HCENTER,
+                  getGameMode() == Duel);
     }
 }
 
@@ -329,7 +333,7 @@ void Level::drawEndFlag(SpriteRenderer* renderer, int16_t x,
     static PROGMEM const int8_t displ[] = {
         0, 0, 1, 1, 1, 1, 0, 0, 0, -1, -1, -1
     };
-    int8_t displIndex = (getFrameCounter() >> 1) % sizeof(displ);
+    uint8_t displIndex = (getFrameCounter() >> 1) % sizeof(displ);
     int16_t displY = 0;
     for (int16_t crtX = x; crtX < x + w; ++crtX) {
         if (((crtX - x) & 3) == 0) {
@@ -374,12 +378,16 @@ void Level::updateControls(uint8_t buttonsState, uint8_t oldButtonsState) {
 }
 
 void Level::checkRecord() {
-    if (getGameMode() == TimeAttack) {
-        uint8_t gearMode = getGearMode();
-        if (levelTimer < getTimeRecord(gearMode)) {
-            updateTimeRecord(gearMode, levelTimer);
-            newRecord = true;
-        }
+    uint8_t gearMode = getGearMode();
+    uint8_t gameMode = getGameMode();
+    int32_t timeRecord = getTimeRecord(gameMode, gearMode);
+
+    if (levelTimer < timeRecord) {
+        newRecord = true;
+    }
+
+    if (newRecord) {
+        updateTimeRecord(gameMode, gearMode, levelTimer);
     }
 }
 
@@ -391,6 +399,12 @@ void Level::update(int16_t dt) {
 void Level::setEndRace(EndResultType type) {
     if (endResult == NoResult) {
         endResult = type;
+    }
+    if (getGameMode() == Duel) {
+        FP32 difference(enemyCar->getX() - playerCar->getX());
+        difference /= Defs::MaxCarSpeed;
+        difference *= 1000;
+        levelTimer = difference.getInt();
     }
     raceEnd();
     setState(Result);
@@ -423,8 +437,8 @@ void Level::updateState(int16_t dt) {
                 screenAnimType = None;
             }
             levelTimer += dt;
-            if (levelTimer > 1000000000) {
-                levelTimer = 1000000000;
+            if (levelTimer > 5940000) {     // limit it at 99 min
+                levelTimer = 5940000;
             }
         break;
         case Result:

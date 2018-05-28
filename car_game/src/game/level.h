@@ -143,7 +143,7 @@ class Level {
     Car*            enemyCar;
     int8_t          scrAnimX;
     int8_t          scrAnimY;
-    uint32_t        levelTimer;
+    int32_t         levelTimer;
     uint8_t         stateCounter;
     uint8_t         maxStateCounter;
     bool            newRecord;
@@ -155,8 +155,9 @@ class Level {
     inline void drawHUD(SpriteRenderer* renderer);
     inline void drawCarHUD(SpriteRenderer* renderer, int16_t x, int16_t y);
     inline void drawTimer(SpriteRenderer* renderer, int16_t x, int16_t y,
-                          uint8_t anchor = (ANCHOR_BOTTOM | ANCHOR_LEFT));
-    inline void drawRecord(SpriteRenderer* renderer, int16_t x, int16_t y);
+                          uint8_t anchor = (ANCHOR_BOTTOM | ANCHOR_LEFT),
+                          bool addSign = false);
+    inline void drawResult(SpriteRenderer* renderer, int16_t x, int16_t y);
     inline void updateState(int16_t dt);
     inline void updateGeneral(int16_t dt);
     inline void updateCamera();

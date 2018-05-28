@@ -20,45 +20,42 @@ uint8_t         oldButtonsState;
 SpriteRenderer  renderer;
 Menu            menu;
 Level           level;
-int32_t         frameCounter;
+uint32_t        frameCounter;
 
 AppState appState = Invalid;
 
-uint32_t bestTimes[2] = {
+int32_t bestTimes[4] = {
     180000,
-    220000
+    220000,
+     -1000,
+      -800
 };
 
-FP32 bestDistances[2] = {
-    FP32(200),
-    FP32(180)
-};
 
-uint32_t getTimeRecord(uint8_t gearMode) {
-    return bestTimes[gearMode];
+int32_t getTimeRecord(uint8_t gameMode, uint8_t gearMode) {
+    return bestTimes[(gameMode << 1) + gearMode];
 }
 
-void updateTimeRecord(uint8_t gearMode, uint32_t newValue) {
-    bestTimes[gearMode] = newValue;
+void updateTimeRecord(uint8_t gameMode, uint8_t gearMode, int32_t newValue) {
+    bestTimes[(gameMode << 1) + gearMode] = newValue;
     saveSave();
 }
 
-const char signature[] = {'N', 'K', 'D', '1'};
+static constexpr uint16_t signature = (static_cast<uint16_t>('N') << 8) |
+                                      (static_cast<uint16_t>('R'));
 
 void saveSave() {
     EEPROM.put(0, signature);
     EEPROM.put(sizeof(signature), bestTimes);
-    EEPROM.put(sizeof(signature) + sizeof(bestTimes), bestDistances);
 }
 
 void saveLoad() {
-    char sign[4];
+    uint16_t sign;
     EEPROM.get(0, sign);
-    if(memcmp(signature, sign, sizeof(sign)) != 0) {
+    if(sign != signature) {
         saveSave();
     } else {
         EEPROM.get(sizeof(signature), bestTimes);
-        EEPROM.get(sizeof(signature) + sizeof(bestTimes), bestDistances);
     }
 }
 
@@ -80,7 +77,7 @@ void setAppState(AppState newState) {
     }
 }
 
-int32_t getFrameCounter() {
+uint32_t getFrameCounter() {
     return frameCounter;
 }
 
@@ -125,12 +122,13 @@ void loop() {
                 level.restart();
                 setAppState(Ingame);
             }
-            int8_t string = Strings::BestTime + menu.getItemOption(0);
-            getString(string);
-            if (menu.getItemOption(0) == 0) {
-                Utils::formatTime(bestTimes[menu.getItemOption(1)],
-                                  getStringBuffer() + getStringLen(string));
-            }
+            uint8_t selectedGameMode = menu.getItemOption(0);
+            getString(Strings::BestTime);
+            Utils::formatTime(getTimeRecord(selectedGameMode,
+                                            menu.getItemOption(1)),
+                              getStringBuffer() +
+                              getStringLen(Strings::BestTime),
+                              selectedGameMode == 1);
             GetFont(Defs::FontMain)->drawString(
                     &renderer, getStringBuffer(),
                     Defs::ScreenW / 2, 64, ANCHOR_BOTTOM | ANCHOR_HCENTER, -1);

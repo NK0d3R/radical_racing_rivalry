@@ -5,7 +5,8 @@
 const FP32 Defs::FPHalfScrW(Defs::ScreenW / 2);
 const FP32 Defs::MinRPM(1100);
 const FP32 Defs::MaxRPM(8000);
-const FP32 Defs::RaceLength(1500);
+const FP32 Defs::RaceLength(2000);
+const FP32 Defs::MaxCarSpeed((250.0f * 1000.0f) / 3600.0f);  // 250 km/h in m/s
 
 void Utils::fastGetDigits(uint16_t value, char* dest, uint16_t nbDigits) {
     int16_t maxVal = 1;
@@ -22,15 +23,27 @@ void Utils::fastGetDigits(uint16_t value, char* dest, uint16_t nbDigits) {
     }
 }
 
-void Utils::formatTime(int32_t time, char* dest) {
+void Utils::formatTime(int32_t time, char* dest, bool addSign) {
+    bool negative = (time < 0);
+    if (negative) {
+        time *= -1;
+    }
     uint16_t sec = time / 1000;
     uint16_t msec = time - (sec * 1000);
     uint16_t min = sec / 60;
     sec -= min * 60;
-    dest[9] = 0;
-    Utils::fastGetDigits(msec, &dest[8], 3);
-    Utils::fastGetDigits(sec, &dest[4], 2);
+    if (addSign) {
+        if (negative) {
+            dest[0] = '-';
+        } else {
+            dest[0] = '+';
+        }
+        dest++;
+    }
     Utils::fastGetDigits(min, &dest[1], 2);
-    dest[5] = '.';
     dest[2] = ':';
+    Utils::fastGetDigits(sec, &dest[4], 2);
+    dest[5] = '.';
+    Utils::fastGetDigits(msec, &dest[8], 3);
+    dest[9] = 0;
 }

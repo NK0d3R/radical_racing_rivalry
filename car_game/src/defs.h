@@ -15,7 +15,7 @@ typedef FPValue<int32_t, int64_t, 8> FP32;
 typedef VectorT<FP32> Vector;
 typedef LineT<FP32> Line;
 
-int32_t getFrameCounter();
+uint32_t getFrameCounter();
 
 enum AppState {
     Invalid,
@@ -26,8 +26,8 @@ enum AppState {
 
 void setAppState(AppState newState);
 
-uint32_t getTimeRecord(uint8_t gearMode);
-void updateTimeRecord(uint8_t gearMode, uint32_t newValue);
+int32_t getTimeRecord(uint8_t gameMode, uint8_t gearMode);
+void updateTimeRecord(uint8_t gameMode, uint8_t gearMode, int32_t newValue);
 void saveSave();
 void saveLoad();
 
@@ -145,6 +145,7 @@ struct Defs {
     static const FP32 MinRPM;
     static const FP32 MaxRPM;
     static const FP32 RaceLength;
+    static const FP32 MaxCarSpeed;
 };
 
 struct Utils {
@@ -167,7 +168,7 @@ struct Utils {
     static T upperClamp(T x, T limit) { return x > limit ? limit : x; }
 
     static void fastGetDigits(uint16_t value, char* dest, uint16_t nbDigits);
-    static void formatTime(int32_t time, char* dest);
+    static void formatTime(int32_t time, char* dest, bool addSign = false);
 };
 
 #endif  // DEFS_H__

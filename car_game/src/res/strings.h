@@ -12,7 +12,6 @@ enum Strings : uint8_t {
     TimeAttack_Over,
     Duel_Won,
     BestTime,
-    BestScore,
     NewRecord,
     StringsNb
 };

@@ -24,7 +24,7 @@ void Menu::drawSpriteElementBackground(SpriteRenderer* renderer,
                                                     Defs::MenuItemBg));
     renderer->setClip(x - (width >> 1), y - (height >> 1), width, height);
     int16_t maxX = renderer->getClip().maxX;
-    int32_t frame = getFrameCounter();
+    uint32_t frame = getFrameCounter();
     for (int16_t scale = 2; scale <= 3; ++scale) {
         int16_t offset = (frame * (scale << 1)) % bgTileW;
         int16_t crtX = renderer->getClip().x - offset;
