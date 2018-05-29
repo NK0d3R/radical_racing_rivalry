@@ -24,6 +24,7 @@ def main():
         sys.exit(255)
     default_mapping = -1
     max_char = -1
+    min_char = 256
     tab_str = " " * parse_data.tabs
     mapping = {}
 
@@ -41,6 +42,8 @@ def main():
                     chr_value = ord(char)
                     if chr_value > max_char:
                         max_char = chr_value
+                    if chr_value < min_char:
+                        min_char = chr_value
                     mapping[chr_value] = used_frame
                 else:
                     print("Invalid char sequence at line %d" % (index))
@@ -55,10 +58,11 @@ def main():
                 output.write(copyright.read())
         output.write("#ifndef %s_H_\n#define %s_H_\n\n" %
                      (variable_name_base, variable_name_base))
-        output.write("uint8_t nb_map_elems = %d;\n" % (max_char + 1))
+        output.write("uint8_t nb_map_elems = %d;\n" % (max_char - min_char + 1))
+        output.write("uint8_t map_start_char = %d;\n" % (min_char))
         output.write("uint8_t default_frame = %d;\n" % (default_mapping))
         output.write("PROGMEM uint8_t const mapping[] = {\n")
-        for char in range(0, 128):
+        for char in range(min_char, max_char + 1):
             stop = False
             outstr = ""
             if char in mapping:

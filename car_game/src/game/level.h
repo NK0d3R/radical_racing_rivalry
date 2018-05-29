@@ -161,6 +161,8 @@ class Level {
     inline void updateState(int16_t dt);
     inline void updateGeneral(int16_t dt);
     inline void updateCamera();
+    inline void drawDistanceToRival(SpriteRenderer* renderer,
+                                    int16_t x, int16_t y);
     void startScreenAnim(int8_t x, int8_t y, ScreenAnimType type,
                          uint8_t anim = 0, bool loop = false);
     void foreachGameObject(auto func);

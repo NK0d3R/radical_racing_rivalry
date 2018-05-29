@@ -163,7 +163,7 @@ void Car::updateEngine(int16_t dt) {
         int32_t engineRPMi = engineRPM.getInt();
         if (engineRPMi > 7200) {
             overheatCounter += (engineRPMi - 7000) / 200;
-            if (overheatCounter > 40) {
+            if (overheatCounter > 30) {
                 destroy();
             }
         } else {

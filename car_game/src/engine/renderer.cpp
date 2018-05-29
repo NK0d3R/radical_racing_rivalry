@@ -7,31 +7,11 @@ uint8_t SpriteRenderer::lineBuffer[BUFFER_CAPACITY] = {0};
 #endif
 
 uint8_t SpriteRenderer::leftMask(uint8_t nbBits) {
-    static const uint8_t leftMasks[] PROGMEM = {
-        0xff,
-        0xfe,
-        0xfc,
-        0xf8,
-        0xf0,
-        0xe0,
-        0xc0,
-        0x80
-    };
-    return pgm_read_byte(&leftMasks[nbBits]);
+    return (0xFF << nbBits);
 }
 
 uint8_t SpriteRenderer::rightMask(uint8_t nbBits) {
-    static const uint8_t rightMasks[] PROGMEM = {
-        0xff,
-        0x7f,
-        0x3f,
-        0x1f,
-        0x0f,
-        0x07,
-        0x03,
-        0x01
-    };
-    return pgm_read_byte(&rightMasks[nbBits]);
+    return (0xFF >> nbBits);
 }
 
 uint8_t SpriteRenderer::bitReverse(uint8_t byte) {
@@ -101,28 +81,27 @@ void SpriteRenderer::drawSpriteData1Bit(uint8_t* spriteData, uint8_t srcX,
                                         uint8_t initialHeight, uint8_t flags) {
     bool xFlipped = (flags & ARD_FLAGS_FLIP_X);
     bool yFlipped = (flags & ARD_FLAGS_FLIP_Y);
+    bool isOpaque = (getOpacityBit(flags) != 0);
 
-    uint16_t spriteDataStride = (initialWidth << 1);
+    uint16_t spriteDataStride = isOpaque ? initialWidth : (initialWidth << 1);
     uint16_t destRowStartByte = targetX + ((targetY >> 3) * frameStride);
 
     uint8_t destBit = (targetY & 7);
 
     uint8_t currentPixData[2];
 
-    uint16_t srcRowStartByte;
-    uint8_t  srcBit;
-    int16_t  srcRowIncr;
-    uint8_t  availBits;
+    uint8_t srcBit;
+    int16_t srcRowIncr;
     uint16_t destOffset;
+    uint16_t srcRowStartByte;
 
-    uint8_t toShift;
-    bool shiftLeft;
-
+    int8_t toShift;  // if toShift > 0: shift left, if < 0: shift right
     uint8_t pixWritten;
 
-    int8_t xOffset = 0;
-    int8_t xOffsetStart = 0;
-    int8_t xOffsetInc = 2;
+    uint8_t xOffset = 0;
+    uint8_t xOffsetStart = 0;
+    int8_t xOffsetInc = isOpaque ? 1 : 2;
+    uint8_t xLeftShift = xOffsetInc - 1;
     int8_t colsToWrite;
 
     if (yFlipped == false) {
@@ -138,30 +117,24 @@ void SpriteRenderer::drawSpriteData1Bit(uint8_t* spriteData, uint8_t srcX,
     }
 
     if (xFlipped == false) {
-        srcRowStartByte += (srcX << 1);
+        srcRowStartByte += (srcX << xLeftShift);
     } else {
-        xOffsetStart = ((width - 1) << 1);
-        xOffsetInc = -2;
+        xOffsetStart = ((width - 1) << xLeftShift);
+        xOffsetInc = -xOffsetInc;
         if (srcX == 0) {
-            srcRowStartByte += ((initialWidth - width) << 1);
+            srcRowStartByte += ((initialWidth - width) << xLeftShift);
         }
     }
 
 #if USE_RENDERER_LINE_BUFFER
-    memcpy_P(lineBuffer, spriteData + srcRowStartByte, (width << 1));
+    memcpy_P(lineBuffer, spriteData + srcRowStartByte, (width << xLeftShift));
 #endif
 
     while (height > 0) {
-        if (srcBit == destBit) {
-            toShift = 0;
-            pixWritten = (8 - srcBit);
-        } else if (srcBit < destBit) {
-            toShift = destBit - srcBit;
-            shiftLeft = true;
+        toShift = destBit - srcBit;
+        if (srcBit < destBit) {
             pixWritten = (8 - destBit);
         } else {
-            toShift = srcBit - destBit;
-            shiftLeft = false;
             pixWritten = (8 - srcBit);
         }
 
@@ -174,8 +147,14 @@ void SpriteRenderer::drawSpriteData1Bit(uint8_t* spriteData, uint8_t srcX,
             currentPixData[0] = lineBuffer[xOffset];
             currentPixData[1] = lineBuffer[xOffset + 1];
         #else
-            *reinterpret_cast<int16_t*>(currentPixData) =
+            if (isOpaque) {
+                currentPixData[0] = pgm_read_byte(spriteData +
+                                                  srcRowStartByte + xOffset);
+                currentPixData[1] = 0xFF;
+            } else {
+                *reinterpret_cast<int16_t*>(currentPixData) =
                         pgm_read_word(spriteData + srcRowStartByte + xOffset);
+            }
         #endif
             if (yFlipped != 0) {
                 currentPixData[0] = bitReverse(currentPixData[0]);
@@ -185,14 +164,13 @@ void SpriteRenderer::drawSpriteData1Bit(uint8_t* spriteData, uint8_t srcX,
             if (srcBit + pixWritten < 8) {
                 currentPixData[1] &= rightMask(8 - (srcBit + pixWritten));
             }
-            if (toShift != 0) {
-                if (shiftLeft) {
-                    currentPixData[1] <<= toShift;
-                    currentPixData[0] <<= toShift;
-                } else {
-                    currentPixData[1] >>= toShift;
-                    currentPixData[0] >>= toShift;
-                }
+            if (toShift > 0) {
+                currentPixData[0] <<= toShift;
+                currentPixData[1] <<= toShift;
+            } else if (toShift < 0) {
+                uint8_t shiftAmount = -toShift;
+                currentPixData[0] >>= shiftAmount;
+                currentPixData[1] >>= shiftAmount;
             }
             updatePixelBatch(&frameBuffer[destOffset], currentPixData[0],
                              currentPixData[1]);

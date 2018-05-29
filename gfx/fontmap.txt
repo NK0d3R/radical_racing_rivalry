@@ -40,4 +40,5 @@ z Z 25
 + 39
 - 40
 ! 41
-default 42
+> 42
+default 43

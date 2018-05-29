@@ -47,3 +47,11 @@ void Utils::formatTime(int32_t time, char* dest, bool addSign) {
     Utils::fastGetDigits(msec, &dest[8], 3);
     dest[9] = 0;
 }
+
+void Utils::formatDistance(int16_t distance, char* dest) {
+    dest[0] = '+';
+    fastGetDigits(distance, &dest[3], 3);
+    dest[4] = 'm';
+    dest[5] = '>';
+    dest[6] = 0;
+}

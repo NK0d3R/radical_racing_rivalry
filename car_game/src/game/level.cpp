@@ -226,6 +226,9 @@ void Level::draw(SpriteRenderer* renderer) {
 
     if (state == Race) {
         drawHUD(renderer);
+        if (getGameMode() == Duel && !enemyCar->isVisible()) {
+            drawDistanceToRival(renderer, 127, 32);
+        }
     }
 
     switch (screenAnimType) {
@@ -426,7 +429,7 @@ void Level::updateState(int16_t dt) {
                 setEndRace(EndResultType::RaceEndTimeAttack + getGameMode());
                 break;
             }
-            if (enemyCar->getX() >= Defs::RaceLength) {
+            if (getGameMode() == Duel && enemyCar->getX() >= Defs::RaceLength) {
                 setEndRace(EndResultType::RaceEndLose);
                 break;
             }
@@ -472,6 +475,17 @@ void Level::updateGeneral(int16_t dt) {
     foreachGameObject([&](GameObject* obj) { obj->updateScreenX(); });
     for (auto layer : bgLayers) {
         layer->update(dt);
+    }
+}
+
+void Level::drawDistanceToRival(SpriteRenderer* renderer, int16_t x,
+                                int16_t y) {
+    FP32 dist(enemyCar->getX() - playerCar->getX());
+    if (dist > 0) {
+        char* dest = getStringBuffer();
+        Utils::formatDistance(dist.getInt(), dest);
+        GetFont(Defs::FontMain)->drawString(renderer, dest, x, y,
+                                            ANCHOR_RIGHT | ANCHOR_VCENTER);
     }
 }
 

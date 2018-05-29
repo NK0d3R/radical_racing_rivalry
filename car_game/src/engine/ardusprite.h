@@ -27,6 +27,14 @@ inline constexpr uint8_t invertBits(uint8_t value, uint8_t mask) {
     return ((~value) & mask) | (value & (~mask));
 }
 
+inline constexpr uint8_t getHeight(uint8_t value) {
+    return (value & 0x7F);
+}
+
+inline constexpr uint8_t getOpacityBit(uint8_t value) {
+    return (value & 0x80);
+}
+
 struct SpriteElement {
     uint8_t     width;
     uint8_t     height;
@@ -52,7 +60,6 @@ struct SpriteAnim {
 }__attribute__((__packed__));
 
 struct Sprite {
-    uint8_t   flags;
     uint8_t   elemsNb;
     uint8_t   animsNb;
     const uint8_t*  imageData;
@@ -62,8 +69,6 @@ struct Sprite {
     const SpriteAnimFrame* animFrames;
     const SpriteFrameElement* frameElems;
 
-    void drawElement(SpriteRenderer* renderer, const SpriteElement& element,
-                     int16_t posX, int16_t posY, uint8_t elemFlags);
     void drawAnimationFrame(SpriteRenderer* renderer, uint8_t animation,
                             uint8_t frame, int16_t posX,
                             int16_t posY, uint8_t flags);
@@ -77,9 +82,11 @@ struct Font : public Sprite {
     uint8_t     defaultFrame;
     uint8_t     spaceWidth;
     uint8_t     fontHeight;
+    uint8_t     firstAvailableChar;
 
     void create(const uint8_t* data, const uint8_t* mapData, uint8_t mapLen,
-                uint8_t spaceW, uint8_t height, uint8_t defFrame);
+                uint8_t spaceW, uint8_t height, uint8_t defFrame,
+                uint8_t minChar);
     void drawString(SpriteRenderer* renderer, const char* string,
                     int16_t posX, int16_t posY,
                     uint8_t anchor, int8_t charSpacing = 0);

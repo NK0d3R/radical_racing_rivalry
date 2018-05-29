@@ -19,6 +19,7 @@ uint32_t getFrameCounter();
 
 enum AppState {
     Invalid,
+    Splash,
     MainMenu,
     Ingame,
     AfterGameMenu
@@ -109,7 +110,8 @@ struct Defs {
     enum : uint8_t {
         MenuItemBg = 0,
         MenuArrowR = 2,
-        MenuArrowL
+        MenuArrowL,
+        MenuSplash
     };
 
     // Menu actions
@@ -169,6 +171,7 @@ struct Utils {
 
     static void fastGetDigits(uint16_t value, char* dest, uint16_t nbDigits);
     static void formatTime(int32_t time, char* dest, bool addSign = false);
+    static void formatDistance(int16_t distance, char* dest);
 };
 
 #endif  // DEFS_H__

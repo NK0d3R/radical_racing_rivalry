@@ -7,7 +7,6 @@ void Sprite::create(const uint8_t* data) {
     int totalAnimFrames = 0;
     int totalFrameElems = 0;
 
-    flags = pgm_read_byte(data++);
     elemsNb = pgm_read_byte(data++);
     animsNb = pgm_read_byte(data++);
 
@@ -39,14 +38,6 @@ void Sprite::create(const uint8_t* data) {
 
     data += totalFrameElems * sizeof(SpriteFrameElement);
     imageData = data;
-}
-
-void Sprite::drawElement(SpriteRenderer* renderer, const SpriteElement& element,
-                         int16_t posX, int16_t posY, uint8_t elemFlags) {
-    elemFlags |= (flags << 4);
-    renderer->drawSpriteData(imageData + element.imageOffset,
-                             posX, posY, element.width,
-                             element.height, elemFlags);
 }
 
 void Sprite::drawAnimationFrame(SpriteRenderer* renderer,
@@ -86,16 +77,17 @@ void Sprite::drawAnimationFrame(SpriteRenderer* renderer,
           elemFlags = invertBits(elemFlags, ARD_FLAGS_FLIP_X);
         }
 
+        uint8_t elem_height = getHeight(currentElem.height);
+
         if (flags & ARD_FLAGS_FLIP_Y) {
-          uint8_t elem_height = currentElem.height;
           elemPosY = -elemPosY - elem_height + 1;
           elemFlags = invertBits(elemFlags, ARD_FLAGS_FLIP_Y);
         }
 
-        drawElement(renderer, currentElem,
-                    posX + elemPosX,
-                    posY + elemPosY,
-                    elemFlags);
+        renderer->drawSpriteData(imageData + currentElem.imageOffset,
+                                 posX + elemPosX, posY + elemPosY,
+                                 currentElem.width, elem_height,
+                                 elemFlags | getOpacityBit(currentElem.height));
     }
 }
 
@@ -194,12 +186,14 @@ void SpriteAnimator::draw(SpriteRenderer* renderer,
 }
 
 void Font::create(const uint8_t* data, const uint8_t* mapData, uint8_t mapLen,
-                  uint8_t spaceW, uint8_t height, uint8_t defFrame) {
+                  uint8_t spaceW, uint8_t height, uint8_t defFrame,
+                  uint8_t minChar) {
     mapping = mapData;
     mappingLen = mapLen;
     spaceWidth = spaceW;
     fontHeight = height;
     defaultFrame = defFrame;
+    firstAvailableChar = minChar;
     Sprite::create(data);
 }
 
@@ -213,8 +207,9 @@ uint16_t Font::getStringWidth(const char* string, int8_t charSpacing) {
     uint16_t crtFrameW;
 
     while (string[idx] && idx < MAX_STR_SIZE_BUFF) {
-        if (string[idx] < mappingLen) {
-            crtFrame = pgm_read_byte(&mapping[string[idx]]);
+        uint8_t mapIndex = string[idx] - firstAvailableChar;
+        if (mapIndex < mappingLen) {
+            crtFrame = pgm_read_byte(&mapping[mapIndex]);
             if (crtFrame != defaultFrame) {
                 crtFrameW = GET_W_FROM_SIZE(
                                 measureAnimationFrame(0, crtFrame)) +
@@ -252,8 +247,9 @@ void Font::drawString(SpriteRenderer* renderer, const char* string,
         posY += fontHeight;
     }
     while (string[idx] && idx < MAX_STR_SIZE_BUFF) {
-        if (string[idx] < mappingLen) {
-            crtFrame = pgm_read_byte(&mapping[string[idx]]);
+        uint8_t mapIndex = string[idx] - firstAvailableChar;
+        if (mapIndex < mappingLen) {
+            crtFrame = pgm_read_byte(&mapping[mapIndex]);
             if (crtFrame != defaultFrame) {
                 drawAnimationFrame(renderer, 0, crtFrame, posX, posY, 0);
             }

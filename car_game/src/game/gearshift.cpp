@@ -45,7 +45,7 @@ void GearShiftAuto::draw(SpriteRenderer* renderer, int16_t x, int16_t y) {
     car->drawAnimationFrame(renderer, Defs::AnimCarGearsAuto,
                             currentGear, x, y, 0);
     if (state != Idle) {
-        if (currentGear < Defs::MaxGear - 1) {
+        if (currentGear < Defs::MaxGear) {
             car->drawAnimationFrame(renderer, Defs::AnimCarGearsAuto,
                                     currentGear + 1,
                                     x, y - GearDisplH, 0);

@@ -25,10 +25,10 @@ uint32_t        frameCounter;
 AppState appState = Invalid;
 
 int32_t bestTimes[4] = {
-    180000,
-    220000,
-     -1000,
-      -800
+    60000,
+    70000,
+    -1000,
+     -800
 };
 
 
@@ -41,8 +41,11 @@ void updateTimeRecord(uint8_t gameMode, uint8_t gearMode, int32_t newValue) {
     saveSave();
 }
 
-static constexpr uint16_t signature = (static_cast<uint16_t>('N') << 8) |
-                                      (static_cast<uint16_t>('R'));
+static constexpr uint32_t saveVersion = 1;
+static constexpr uint32_t signature = (static_cast<uint32_t>('N') << 24) |
+                                      (static_cast<uint32_t>('K') << 16) |
+                                      (static_cast<uint32_t>('D') << 8)  |
+                                       saveVersion;
 
 void saveSave() {
     EEPROM.put(0, signature);
@@ -50,7 +53,7 @@ void saveSave() {
 }
 
 void saveLoad() {
-    uint16_t sign;
+    uint32_t sign;
     EEPROM.get(0, sign);
     if(sign != signature) {
         saveSave();
@@ -95,10 +98,10 @@ void setup() {
     GetSprite(Defs::SpriteMenu)->create(MENU_SPRITE_DATA);
     GetFont(Defs::FontMain)->create(FONT_DATA, mapping, nb_map_elems,
                                     Defs::MainFontSpaceW, Defs::MainFontHeight,
-                                    default_frame);
+                                    default_frame, map_start_char);
     renderer.initialize(app.getBuffer(), 128);
-    renderer.setClip(0, 0, 128, 64);
-    setAppState(MainMenu);
+    renderer.setClip(0, 0, Defs::ScreenW, Defs::ScreenH);
+    setAppState(Splash);
     //Serial.begin(9600);
 }
 
@@ -113,6 +116,14 @@ void loop() {
     buttonsState = app.buttonsState();
 
     switch(appState) {
+        case Splash: {
+            GetSprite(Defs::SpriteMenu)->drawAnimationFrame(
+                                            &renderer, Defs::AnimMenuElements,
+                                            Defs::MenuSplash, 0, 0, 0);
+            if ((oldButtonsState ^ buttonsState) & buttonsState) {
+                setAppState(MainMenu);
+            }
+        } break;
         case MainMenu: {
             menu.updateControls(buttonsState, oldButtonsState);
             menu.draw(&renderer, (Defs::ScreenW >> 1), 0);
