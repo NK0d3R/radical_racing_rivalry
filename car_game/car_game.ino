@@ -1,4 +1,4 @@
-  // Copyright 2018 Catalin G. Manciu
+// Copyright 2018 Catalin G. Manciu
 
 #include "src/stdinc.h"
 #include "src/defs.h"

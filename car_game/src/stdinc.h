@@ -1,4 +1,5 @@
 // Copyright 2018 Catalin G. Manciu
+
 #ifndef STDINC_H_
 #define STDINC_H_
 

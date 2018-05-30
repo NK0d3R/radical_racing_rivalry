@@ -51,12 +51,12 @@ struct SpriteFrameElement {
 struct SpriteAnimFrame {
     uint8_t   duration;
     uint8_t   elemsNb;
-    uint16_t  frameElemsStart;
+    uint8_t   frameElemsStart;
 }__attribute__((__packed__));
 
 struct SpriteAnim {
     uint8_t   framesNb;
-    uint16_t  framesStart;
+    uint8_t   framesStart;
 }__attribute__((__packed__));
 
 struct Sprite {
