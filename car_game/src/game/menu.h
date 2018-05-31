@@ -19,7 +19,7 @@ class Menu {
         optionStatus = 0;
         action = 0;
     }
-    void draw(SpriteRenderer* renderer, int16_t x, int16_t y);
+    void draw(SpriteRenderer* renderer, uint8_t x, uint8_t y);
     uint8_t getItemOption(uint8_t item) {
         return ((optionStatus >> (item * optionBits)) & optionMask);
     }

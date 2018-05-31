@@ -13,6 +13,11 @@ enum Strings : uint8_t {
     Duel_Won,
     BestTime,
     NewRecord,
+    Title_1,
+    Title_2,
+    Title_3,
+    Copyleft,
+    PressToCont,
     StringsNb
 };
 

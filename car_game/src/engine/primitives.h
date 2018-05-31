@@ -49,8 +49,8 @@ struct Rect {
                             (xpos > fpXMax ? OUTSIDE_RIGHT : INSIDE));
         T fpX = T(x);
         T fpXMax = T(maxX);
-        int8_t startXStatus = GET_STATUS_X(line->start.x);
-        int8_t endXStatus = GET_STATUS_X(line->end.x);
+        uint8_t startXStatus = GET_STATUS_X(line->start.x);
+        uint8_t endXStatus = GET_STATUS_X(line->end.x);
         if (((startXStatus & endXStatus) & OUTSIDE_MASK) != 0) {
             line->start = {0, 0};
             line->end = {0, 0};

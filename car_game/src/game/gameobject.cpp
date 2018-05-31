@@ -11,7 +11,3 @@ bool GameObject::isVisible() {
 void GameObject::updateScreenX() {
     screenX = parent->worldToScreenX(xPos, zPos);
 }
-
-void GameObject::updateScreenY() {
-    screenY = parent->worldToScreenY(xPos, zPos);
-}

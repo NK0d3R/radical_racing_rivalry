@@ -23,7 +23,7 @@ uint8_t SpriteRenderer::bitReverse(uint8_t byte) {
             pgm_read_byte(&reversedBits[(byte & 0xF0) >> 4]);
 }
 
-void SpriteRenderer::initialize(uint8_t* fb, uint16_t fs) {
+void SpriteRenderer::initialize(uint8_t* fb, uint8_t fs) {
     frameBuffer = fb;
     frameStride = fs;
 }
@@ -32,14 +32,14 @@ void SpriteRenderer::setClip(int16_t x, int16_t y, int16_t w, int16_t h) {
     clip.set(x, y, w, h);
 }
 
-void SpriteRenderer::putPixel(int16_t x, int16_t y) {
+void SpriteRenderer::putPixel(uint8_t x, uint8_t y) {
     uint16_t destRowByte = x + (y >> 3) * frameStride;
     uint8_t destBit = (y & 7);
     frameBuffer[destRowByte] |= (1 << destBit);
 }
 
 void SpriteRenderer::fastDrawVerticalPattern(uint8_t pattern,
-                                             int16_t x, int16_t y) {
+                                             uint8_t x, uint8_t y) {
     uint16_t destRowByte = x + (y >> 3) * frameStride;
     uint8_t destBit = (y & 7);
     updatePixelBatch(&frameBuffer[destRowByte], (pattern << destBit),
@@ -144,8 +144,13 @@ void SpriteRenderer::drawSpriteData1Bit(uint8_t* spriteData, uint8_t srcX,
         for (xOffset = xOffsetStart, colsToWrite = width;
             colsToWrite > 0; --colsToWrite, xOffset += xOffsetInc) {
         #if USE_RENDERER_LINE_BUFFER
-            currentPixData[0] = lineBuffer[xOffset];
-            currentPixData[1] = lineBuffer[xOffset + 1];
+            if (isOpaque) {
+                currentPixData[0] = lineBuffer[xOffset];
+                currentPixData[1] = 0xFF;
+            } else {
+                currentPixData[0] = lineBuffer[xOffset];
+                currentPixData[1] = lineBuffer[xOffset + 1];
+            }
         #else
             if (isOpaque) {
                 currentPixData[0] = pgm_read_byte(spriteData +
@@ -184,7 +189,8 @@ void SpriteRenderer::drawSpriteData1Bit(uint8_t* spriteData, uint8_t srcX,
             srcBit = 0;
             srcRowStartByte += srcRowIncr;
         #if USE_RENDERER_LINE_BUFFER
-            memcpy_P(lineBuffer, spriteData + srcRowStartByte, (width << 1));
+            memcpy_P(lineBuffer, spriteData + srcRowStartByte,
+                     (width << xLeftShift));
         #endif
         }
         if (destBit > 7) {
@@ -196,17 +202,17 @@ void SpriteRenderer::drawSpriteData1Bit(uint8_t* spriteData, uint8_t srcX,
 
 void SpriteRenderer::drawLine(int16_t xStart, int16_t yStart,
                               int16_t xEnd, int16_t yEnd) {
-    int32_t xDiff = xEnd - xStart;
-    int32_t yDiff = yEnd - yStart;
-    int32_t absX = abs(xDiff);
-    int32_t absY = abs(yDiff);
-    int32_t incrementX = Utils::sgnz(xDiff);
-    int32_t incrementY = Utils::sgnz(yDiff);
+    int16_t xDiff = xEnd - xStart;
+    int16_t yDiff = yEnd - yStart;
+    int16_t absX = abs(xDiff);
+    int16_t absY = abs(yDiff);
+    int16_t incrementX = Utils::sgnz(xDiff);
+    int16_t incrementY = Utils::sgnz(yDiff);
 
     if (absX > absY) {
-        int32_t d = (absY << 1) - absX;
-        int32_t y = yStart;
-        for (int32_t x = xStart;; x += incrementX) {
+        int16_t d = (absY << 1) - absX;
+        int16_t y = yStart;
+        for (int16_t x = xStart;; x += incrementX) {
             putPixel(x, y);
             if (x == xEnd) {
                 return;
@@ -218,9 +224,9 @@ void SpriteRenderer::drawLine(int16_t xStart, int16_t yStart,
             d += (absY << 1);
         }
     } else {
-        int32_t d = (absX << 1) - absY;
-        int32_t x = xStart;
-        for (int32_t y = yStart;; y += incrementY) {
+        int16_t d = (absX << 1) - absY;
+        int16_t x = xStart;
+        for (int16_t y = yStart;; y += incrementY) {
             putPixel(x, y);
             if (y == yEnd) {
                 return;

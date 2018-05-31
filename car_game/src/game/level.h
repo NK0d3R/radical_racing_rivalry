@@ -20,7 +20,7 @@ class Level {
     void draw(SpriteRenderer* renderer);
     void update(int16_t dt);
     int32_t worldToScreenX(const FP32& x, const FP32& y);
-    int16_t worldToScreenY(const FP32& x, const FP32& y);
+    uint8_t worldToScreenY(const FP32& x, const FP32& y);
     void updateControls(uint8_t buttonsState, uint8_t oldButtonsState);
     void raceStart();
     void raceEnd();
@@ -141,8 +141,8 @@ class Level {
     ScreenAnimType  screenAnimType;
     Car*            playerCar;
     Car*            enemyCar;
-    int8_t          scrAnimX;
-    int8_t          scrAnimY;
+    uint8_t         scrAnimX;
+    uint8_t         scrAnimY;
     int32_t         levelTimer;
     uint8_t         stateCounter;
     uint8_t         maxStateCounter;
@@ -151,19 +151,19 @@ class Level {
     static constexpr uint8_t kAccelButton = B_BUTTON;
     static constexpr uint8_t kClutchButton = A_BUTTON;
 
-    void drawEndFlag(SpriteRenderer* renderer, int16_t x, int16_t y, uint8_t w);
+    void drawEndFlag(SpriteRenderer* renderer, uint8_t x, uint8_t y, uint8_t w);
     inline void drawHUD(SpriteRenderer* renderer);
-    inline void drawCarHUD(SpriteRenderer* renderer, int16_t x, int16_t y);
-    inline void drawTimer(SpriteRenderer* renderer, int16_t x, int16_t y,
+    inline void drawCarHUD(SpriteRenderer* renderer, uint8_t x, uint8_t y);
+    inline void drawTimer(SpriteRenderer* renderer, uint8_t x, uint8_t y,
                           uint8_t anchor = (ANCHOR_BOTTOM | ANCHOR_LEFT),
                           bool addSign = false);
-    inline void drawResult(SpriteRenderer* renderer, int16_t x, int16_t y);
+    inline void drawResult(SpriteRenderer* renderer, uint8_t x, uint8_t y);
     inline void updateState(int16_t dt);
     inline void updateGeneral(int16_t dt);
     inline void updateCamera();
     inline void drawDistanceToRival(SpriteRenderer* renderer,
-                                    int16_t x, int16_t y);
-    void startScreenAnim(int8_t x, int8_t y, ScreenAnimType type,
+                                    uint8_t x, uint8_t y);
+    void startScreenAnim(uint8_t x, uint8_t y, ScreenAnimType type,
                          uint8_t anim = 0, bool loop = false);
     void foreachGameObject(auto func);
     void drawMarker(SpriteRenderer* renderer, const FP32& worldPos);

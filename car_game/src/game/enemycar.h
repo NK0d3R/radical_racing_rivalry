@@ -7,8 +7,8 @@
 
 class EnemyCar final : public Car {
  public:
-    EnemyCar(Level* p, FP32 initialX, FP32 initialY, uint8_t scrW) :
-        Car(p, initialX, initialY, scrW) {}
+    EnemyCar(Level* p, uint8_t scrW) :
+        Car(p, scrW) {}
     virtual void reset(const FP32& z);
     virtual void update(int16_t dt);
     virtual void onRaceStart();

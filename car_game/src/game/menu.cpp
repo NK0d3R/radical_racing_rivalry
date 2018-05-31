@@ -25,7 +25,7 @@ void Menu::drawSpriteElementBackground(SpriteRenderer* renderer,
     renderer->setClip(x - (width >> 1), y - (height >> 1), width, height);
     int16_t maxX = renderer->getClip().maxX;
     uint32_t frame = getFrameCounter();
-    for (int16_t scale = 2; scale <= 3; ++scale) {
+    for (uint8_t scale = 2; scale <= 3; ++scale) {
         int16_t offset = (frame * (scale << 1)) % bgTileW;
         int16_t crtX = renderer->getClip().x - offset;
         while (crtX <= maxX) {
@@ -40,7 +40,7 @@ void Menu::drawSpriteElementBackground(SpriteRenderer* renderer,
     renderer->drawLine(renderer->getClip().x, renderer->getClip().maxY,
                        maxX, renderer->getClip().maxY);
     if (hasArrows) {
-        int16_t arrowOffset = 3 + ((frame & 5) >> 2);
+        uint8_t arrowOffset = 3 + ((frame & 5) >> 2);
         spr->drawAnimationFrame(renderer,
                                 Defs::AnimMenuElements, Defs::MenuArrowL,
                                 renderer->getClip().x + arrowOffset, y, 0);
@@ -51,10 +51,10 @@ void Menu::drawSpriteElementBackground(SpriteRenderer* renderer,
     renderer->setClip(0, 0, Defs::ScreenW, Defs::ScreenH);
 }
 
-void Menu::draw(SpriteRenderer* renderer, int16_t x, int16_t y) {
+void Menu::draw(SpriteRenderer* renderer, uint8_t x, uint8_t y) {
     for (uint8_t idx = 0; idx < nbItems; ++idx) {
         uint16_t itemData = pgm_read_word(&menuData[idx]);
-        int16_t height = itemHeight(itemData);
+        uint8_t height = itemHeight(itemData);
         uint8_t visualID = itemVisualID(itemData);
         uint8_t itemOptionCnt = itemOptionCount(itemData);
         if (itemOptionCnt) {

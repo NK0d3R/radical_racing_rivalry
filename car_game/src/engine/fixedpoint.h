@@ -23,7 +23,6 @@ struct FPValue {
     INTEGRAL_CTOR(int16_t);
     INTEGRAL_CTOR(int32_t);
     FLOAT_CTOR(float);
-    FLOAT_CTOR(double);
 
     explicit FPValue(const void* progmem) {
         memcpy_P(this, progmem, sizeof(*this));

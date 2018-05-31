@@ -13,8 +13,8 @@ class SpriteRenderer;
 class Level;
 class Car : public GameObject {
  public:
-    Car(Level* p, FP32 initialX, FP32 initialY, uint8_t scrW) :
-        GameObject(p, initialX, initialY, scrW) {
+    Car(Level* p, uint8_t scrW) :
+        GameObject(p, scrW) {
     }
     virtual void reset(const FP32& z);
     virtual void draw(SpriteRenderer* renderer);

@@ -7,21 +7,21 @@
 #include "../engine/renderer.h"
 
 // Torque (in Nm)
-constexpr FP32 kTorques[] PROGMEM = {
-    FP32(225),                // 1000 RPM
-    FP32(400),                // 2000 RPM
-    FP32(450),                // 3000 RPM
-    FP32(475),                // 4000 RPM
-    FP32(495),                // 5000 RPM
-    FP32(480),                // 6000 RPM
-    FP32(450),                // 7000 RPM
-    FP32(320)                 // 8000 RPM
+constexpr int16_t kTorques[] PROGMEM = {
+    225,                // 1000 RPM
+    400,                // 2000 RPM
+    450,                // 3000 RPM
+    475,                // 4000 RPM
+    495,                // 5000 RPM
+    480,                // 6000 RPM
+    450,                // 7000 RPM
+    320                 // 8000 RPM
 };
 
-#define NB_TORQUES  (sizeof(kTorques)/sizeof(FP32))
+constexpr uint8_t kNbTorques = (sizeof(kTorques)/sizeof(FP32));
 
 constexpr FP32 kGearRatios[] PROGMEM = {
-    FP32(0),
+    FP32(0.0f),
     FP32(9.13f),
     FP32(6.65f),
     FP32(4.45f),
@@ -29,32 +29,31 @@ constexpr FP32 kGearRatios[] PROGMEM = {
     FP32(3.30f)
 };
 
-#define WHEEL_CIRCUMFERENCE    FP32(2.0f * 3.141539f * 0.33f)
-#define WHEEL_RADIUS           FP32(0.33f)
-#define VEHICLE_MASS           FP32(1600)
+constexpr FP32 kWheelCircumference(2.0f * 3.141539f * 0.33f);
+constexpr FP32 kWheelRadius = FP32(0.33f);
+constexpr FP32 kVehicleMass = FP32(1600);
 
-#define WIND_RESISTANCE_MULT   -32
-#define WIND_RESISTANCE_DIV    100
-#define CONSTANT_RESISTANCE    FP32(-1200)
+constexpr int16_t kWindResistanceMult = -32;
+constexpr int16_t kWindResistanceDiv =  100;
+constexpr FP32 kWindResistanceConst(-1200);
 
-FP32 RPM2Torque(const FP32& rpm) {
-    if (rpm < Defs::MinRPM) {
-        return FP32(static_cast<const void*>(&kTorques[0]));
-    } else if (rpm > Defs::MaxRPM) {
+FP32 RPM2Torque(FP32 rpm) {
+    if (rpm > Defs::MaxRPM) {
         return FP32(0);
     }
-    int32_t rpmI = rpm.getInt();
-    int32_t idx = (rpmI / 1000);
-    if (idx == (NB_TORQUES - 1)) {
-        return FP32(static_cast<const void*>(&kTorques[idx]));
+    rpm.clampLower(Defs::MinRPM);
+    int16_t rpmI = rpm.getInt();
+    int16_t idx = (rpmI / 1000);
+    FP32 crtTorque((int16_t)pgm_read_word(&kTorques[idx]));
+    if (idx == (kNbTorques - 1)) {
+        return FP32(crtTorque);
     }
-    int32_t rpmOver = rpmI - (idx * 1000);
+    int16_t rpmOver = rpmI - (idx * 1000);
     if (rpmOver == 0) {
-        return FP32(static_cast<const void*>(&kTorques[idx]));
+        return FP32(crtTorque);
     }
-    FP32 tStart(static_cast<const void*>(&kTorques[idx]));
-    FP32 tEnd(static_cast<const void*>(&kTorques[idx + 1]));
-    return tStart + (((tEnd - tStart) * rpmOver) / 1000);
+    FP32 endTorque((int16_t)pgm_read_word(&kTorques[idx + 1]));
+    return crtTorque + (((endTorque - crtTorque) * rpmOver) / 1000);
 }
 
 FP32 getGearRatio(int16_t idx) {
@@ -64,6 +63,7 @@ FP32 getGearRatio(int16_t idx) {
 void Car::reset(const FP32& z) {
     xPos = 0;
     zPos = z;
+    screenY = parent->worldToScreenY(xPos, z);
     engineRPM = 0;
     wheelsRPM = 0;
     speed = 0;
@@ -134,14 +134,14 @@ void Car::updateEngine(int16_t dt) {
     FP32 engineTorque = 0;
     FP32 fpDT = FP32(dt);
 
-    wheelsRPM = (speed * 60) / WHEEL_CIRCUMFERENCE;
+    wheelsRPM = (speed * 60) / kWheelCircumference;
 
     if (engineConnected) {
         targetEngineRPM = getGearRatio(gear) * wheelsRPM;
         engineRPM = (targetEngineRPM + engineRPM) / 2;
         engineTorque = RPM2Torque(engineRPM.getInt());
         forwardForce = (throttle * engineTorque * getGearRatio(gear)) /
-                        WHEEL_RADIUS;
+                        kWheelRadius;
     } else {
         targetEngineRPM = (Defs::MinRPM) + (throttle * Defs::MaxRPM);
         if (engineRPM < targetEngineRPM) {
@@ -151,16 +151,16 @@ void Car::updateEngine(int16_t dt) {
         }
     }
 
-    forwardForce += CONSTANT_RESISTANCE +
-                     (speed * speed * WIND_RESISTANCE_MULT) /
-                     WIND_RESISTANCE_DIV;
-    FP32 accel = forwardForce / VEHICLE_MASS;
+    forwardForce += kWindResistanceConst +
+                     (speed * speed * kWindResistanceMult) /
+                     kWindResistanceDiv;
+    FP32 accel = forwardForce / kVehicleMass;
     speed += (accel * fpDT) / 1000;
     speed.clampLower(FP32(0));
     xPos += (speed * fpDT) / 1000;
 
     if (alive) {
-        int32_t engineRPMi = engineRPM.getInt();
+        int16_t engineRPMi = engineRPM.getInt();
         if (engineRPMi > 7200) {
             overheatCounter += (engineRPMi - 7000) / 200;
             if (overheatCounter > 30) {

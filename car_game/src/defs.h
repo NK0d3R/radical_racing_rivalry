@@ -11,6 +11,8 @@
     #define BUFFER_CAPACITY         (128)
 #endif
 
+class SpriteRenderer;
+
 typedef FPValue<int32_t, int64_t, 8> FP32;
 typedef VectorT<FP32> Vector;
 typedef LineT<FP32> Line;
@@ -33,8 +35,8 @@ void saveSave();
 void saveLoad();
 
 struct Defs {
-    static constexpr int16_t ScreenW = 128;
-    static constexpr int16_t ScreenH = 64;
+    static constexpr uint8_t ScreenW = 128;
+    static constexpr uint8_t ScreenH = 64;
 
     // Sprites
     enum : uint8_t {
@@ -126,22 +128,22 @@ struct Defs {
     static constexpr int16_t BgChopperMaxWaitTime = 5000;
     static constexpr int16_t BgChopperDecisionTime = 1500;
 
-    static constexpr int16_t RPMBarLength = 32;
-    static constexpr int8_t CarSpeedFontW = 5;
+    static constexpr uint8_t RPMBarLength = 32;
+    static constexpr uint8_t CarSpeedFontW = 5;
 
     static constexpr uint8_t MainFontHeight = 7;
     static constexpr uint8_t MainFontSpaceW = 4;
 
-    static constexpr int16_t LevelActionAreaTop = 45;
-    static constexpr int16_t LevelActionAreaBottom = 63;
+    static constexpr uint8_t LevelActionAreaTop = 45;
+    static constexpr uint8_t LevelActionAreaBottom = 63;
 
-    static constexpr int8_t MaxGear = 5;
+    static constexpr uint8_t MaxGear = 5;
 
-    static constexpr int16_t EndFlagW = 96;
-    static constexpr int16_t EndFlagH = 16;
+    static constexpr uint8_t EndFlagW = 96;
+    static constexpr uint8_t EndFlagH = 16;
 
-    static constexpr int16_t ResultTextY = 26;
-    static constexpr int16_t RecordTextY = 38;
+    static constexpr uint8_t ResultTextY = 26;
+    static constexpr uint8_t RecordTextY = 38;
 
     static const FP32 FPHalfScrW;
     static const FP32 MinRPM;
@@ -172,6 +174,8 @@ struct Utils {
     static void fastGetDigits(uint16_t value, char* dest, uint16_t nbDigits);
     static void formatTime(int32_t time, char* dest, bool addSign = false);
     static void formatDistance(int16_t distance, char* dest);
+    static void drawBlinkingText(SpriteRenderer* renderer, uint8_t stringID,
+                                 uint8_t x, uint8_t y);
 };
 
 #endif  // DEFS_H__

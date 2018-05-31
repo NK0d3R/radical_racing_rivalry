@@ -1,9 +1,12 @@
 // Copyright 2018 Catalin G. Manciu
 
 #include "defs.h"
+#include "engine/renderer.h"
+#include "res/stringmgr.h"
+#include "res/sprites.h"
 
 const FP32 Defs::FPHalfScrW(Defs::ScreenW / 2);
-const FP32 Defs::MinRPM(1100);
+const FP32 Defs::MinRPM(1000);
 const FP32 Defs::MaxRPM(8000);
 const FP32 Defs::RaceLength(2000);
 const FP32 Defs::MaxCarSpeed((250.0f * 1000.0f) / 3600.0f);  // 250 km/h in m/s
@@ -54,4 +57,13 @@ void Utils::formatDistance(int16_t distance, char* dest) {
     dest[4] = 'm';
     dest[5] = '>';
     dest[6] = 0;
+}
+
+static void Utils::drawBlinkingText(SpriteRenderer* renderer, uint8_t stringID,
+                                    uint8_t x, uint8_t y) {
+    if ((getFrameCounter() & 0xF) < 7) {
+        GetFont(Defs::FontMain)->drawString(renderer,
+                                            getString(stringID),
+                                            x, y, ANCHOR_TOP | ANCHOR_HCENTER);
+    }
 }

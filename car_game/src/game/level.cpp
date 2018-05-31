@@ -148,18 +148,16 @@ void Level::BackgroundChopper::draw(SpriteRenderer* renderer,
 }
 
 Level::Level() {
-    playerCar = new Car(this, 0, FP32(0), 43);
-    enemyCar = new EnemyCar(this, 0, FP32(0), 43);
+    playerCar = new Car(this, 43);
+    enemyCar = new EnemyCar(this, 43);
     screenAnim.init(GetSprite(Defs::SpriteCar));
     state = Invalid;
 }
 
 void Level::restart() {
     playerCar->reset(getGameMode() == Duel ? FP32(0.9f) : FP32(0.6f));
-    playerCar->updateScreenY();
     if (getGameMode() == Duel) {
         enemyCar->reset(FP32(0.3f));
-        enemyCar->updateScreenY();
     }
     levelTimer = 0;
     endResult = NoResult;
@@ -169,7 +167,7 @@ void Level::restart() {
     setState(Countdown);
 }
 
-void Level::startScreenAnim(int8_t x, int8_t y, ScreenAnimType type,
+void Level::startScreenAnim(uint8_t x, uint8_t y, ScreenAnimType type,
                             uint8_t anim, bool loop) {
     scrAnimX = x;
     scrAnimY = y;
@@ -216,6 +214,7 @@ void Level::foreachGameObject(auto func) {
 }
 
 void Level::draw(SpriteRenderer* renderer) {
+    if (state == Invalid) return;
     for (auto layer : bgLayers) {
         layer->draw(renderer, cameraPosition);
     }
@@ -244,7 +243,7 @@ void Level::draw(SpriteRenderer* renderer) {
 
 #define DEBUG_ENEMY_SPEED   (0)
 
-void Level::drawCarHUD(SpriteRenderer* renderer, int16_t x, int16_t y) {
+void Level::drawCarHUD(SpriteRenderer* renderer, uint8_t x, uint8_t y) {
 // Draw RPM bar
 #if DEBUG_ENEMY_SPEED
     #define NB_SPEED_DIGITS (6)
@@ -254,7 +253,7 @@ void Level::drawCarHUD(SpriteRenderer* renderer, int16_t x, int16_t y) {
     GetSprite(Defs::SpriteCar)->drawAnimationFrame(
                                     renderer, Defs::AnimCarRPMHud,
                                     Defs::HUDFrameRPM, x, y, 0);
-    int16_t barLength = ((playerCar->getRPM() * Defs::RPMBarLength) /
+    uint8_t barLength = ((playerCar->getRPM() * Defs::RPMBarLength) /
                           Defs::MaxRPM).getInt();
     barLength = Utils::upperClamp(barLength, Defs::RPMBarLength);
     renderer->setClip(x + 1, 0, barLength + 2, Defs::ScreenH);
@@ -263,15 +262,15 @@ void Level::drawCarHUD(SpriteRenderer* renderer, int16_t x, int16_t y) {
                                     Defs::HUDFrameRPMBar, x, y, 0);
     renderer->setClip(0, 0, Defs::ScreenW, Defs::ScreenH);
 // Draw speed
-    int16_t crtX = x + 23;
-    int16_t crtY = y - 5;
+    uint8_t crtX = x + 23;
+    uint8_t crtY = y - 5;
 #if DEBUG_ENEMY_SPEED
     int32_t speed = Utils::mpsToKph(playerCar->getSpeed()).getInt() * 1000 +
                     Utils::mpsToKph(enemyCar->getSpeed()).getInt();
 #else
     int32_t speed = Utils::mpsToKph(playerCar->getSpeed()).getInt();
 #endif
-    for (int8_t digit = 0; digit < NB_SPEED_DIGITS; ++digit) {
+    for (uint8_t digit = 0; digit < NB_SPEED_DIGITS; ++digit) {
         GetSprite(Defs::SpriteCar)->drawAnimationFrame(
                                         renderer, Defs::AnimCarSpeedFont,
                                         (speed % 10), crtX, crtY, 0);
@@ -301,14 +300,14 @@ void Level::drawHUD(SpriteRenderer* renderer) {
     }
 }
 
-void Level::drawTimer(SpriteRenderer* renderer, int16_t x, int16_t y,
+void Level::drawTimer(SpriteRenderer* renderer, uint8_t x, uint8_t y,
                       uint8_t anchor, bool addSign) {
     char* dest = getStringBuffer();
     Utils::formatTime(levelTimer, dest, addSign);
     GetFont(Defs::FontMain)->drawString(renderer, dest, x, y, anchor);
 }
 
-void Level::drawResult(SpriteRenderer* renderer, int16_t x, int16_t y) {
+void Level::drawResult(SpriteRenderer* renderer, uint8_t x, uint8_t y) {
     GetFont(Defs::FontMain)->drawString(renderer,
                                     getString(Dead_Gearbox +
                                     static_cast<Strings>(endResult)),
@@ -317,11 +316,7 @@ void Level::drawResult(SpriteRenderer* renderer, int16_t x, int16_t y) {
                                     ANCHOR_VCENTER | ANCHOR_HCENTER);
     y += 12;
     if (newRecord) {
-        if ((getFrameCounter() & 0xF) < 7) {
-            GetFont(Defs::FontMain)->drawString(
-                    renderer, getString(Strings::NewRecord),
-                    x, y, ANCHOR_TOP | ANCHOR_HCENTER);
-        }
+        Utils::drawBlinkingText(renderer, Strings::NewRecord, x, y);
         y += 8;
     }
     if (endResult > PlayerDeadEngine) {
@@ -330,15 +325,15 @@ void Level::drawResult(SpriteRenderer* renderer, int16_t x, int16_t y) {
     }
 }
 
-void Level::drawEndFlag(SpriteRenderer* renderer, int16_t x,
-                        int16_t y, uint8_t w) {
+void Level::drawEndFlag(SpriteRenderer* renderer, uint8_t x,
+                        uint8_t y, uint8_t w) {
     uint8_t pattern = 0b11110000;
     static PROGMEM const int8_t displ[] = {
         0, 0, 1, 1, 1, 1, 0, 0, 0, -1, -1, -1
     };
     uint8_t displIndex = (getFrameCounter() >> 1) % sizeof(displ);
-    int16_t displY = 0;
-    for (int16_t crtX = x; crtX < x + w; ++crtX) {
+    int8_t displY = 0;
+    for (int8_t crtX = x; crtX < x + w; ++crtX) {
         if (((crtX - x) & 3) == 0) {
             pattern = ~pattern;
         }
@@ -478,8 +473,8 @@ void Level::updateGeneral(int16_t dt) {
     }
 }
 
-void Level::drawDistanceToRival(SpriteRenderer* renderer, int16_t x,
-                                int16_t y) {
+void Level::drawDistanceToRival(SpriteRenderer* renderer, uint8_t x,
+                                uint8_t y) {
     FP32 dist(enemyCar->getX() - playerCar->getX());
     if (dist > 0) {
         char* dest = getStringBuffer();
@@ -514,7 +509,7 @@ int32_t Level::worldToScreenX(const FP32& x, const FP32& y) {
             (FP32(0.7f) + y * FP32(0.5f))).getInt();
 }
 
-int16_t Level::worldToScreenY(const FP32& x, const FP32& y) {
+uint8_t Level::worldToScreenY(const FP32& x, const FP32& y) {
     return Defs::LevelActionAreaTop + (y * (Defs::LevelActionAreaBottom -
                                             Defs::LevelActionAreaTop)).getInt();
 }

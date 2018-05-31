@@ -15,18 +15,16 @@ class GameObject {
     FP32        zPos;
     // Screen coordinates
     int32_t     screenX;
-    int16_t     screenY;
+    uint8_t     screenY;
     uint8_t     screenW;
 
     Level*      parent;
  public:
-    GameObject(Level* p, FP32 initialX, FP32 initialY, uint8_t scrW):
-        parent(p), xPos(initialX), zPos(initialY), screenW(scrW) {}
+    GameObject(Level* p, uint8_t scrW):
+        parent(p), xPos(0), zPos(0), screenW(scrW) {}
     void updateScreenX();
-    void updateScreenY();
     bool isVisible();
     FP32& getX()            { return xPos; }
-    FP32& getZ()            { return zPos; }
     virtual void update(int16_t dt) = 0;
     virtual void draw(SpriteRenderer* renderer) = 0;
     virtual void onRaceStart() {}

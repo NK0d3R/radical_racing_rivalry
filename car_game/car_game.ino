@@ -120,6 +120,18 @@ void loop() {
             GetSprite(Defs::SpriteMenu)->drawAnimationFrame(
                                             &renderer, Defs::AnimMenuElements,
                                             Defs::MenuSplash, 0, 0, 0);
+            for (uint8_t idx = Strings::Title_1, x = 55, y = 10;
+                 idx <= Strings::Title_3; ++idx, x += 10, y += 10) {
+                    GetFont(Defs::FontMain)->drawString(
+                            &renderer, getString(idx), x, y,
+                            ANCHOR_LEFT | ANCHOR_TOP, 1);
+            }
+            GetFont(Defs::FontMain)->drawString(
+                            &renderer, getString(Strings::Copyleft),
+                            (Defs::ScreenW >> 1), Defs::ScreenH,
+                            ANCHOR_HCENTER | ANCHOR_BOTTOM, -1);
+            Utils::drawBlinkingText(&renderer, Strings::PressToCont,
+                                    (Defs::ScreenW >> 1), 48);
             if ((oldButtonsState ^ buttonsState) & buttonsState) {
                 setAppState(MainMenu);
             }
@@ -151,6 +163,7 @@ void loop() {
         } break;
         case AfterGameMenu: {
             menu.updateControls(buttonsState, oldButtonsState);
+            menu.draw(&renderer, (Defs::ScreenW >> 1), 16);
             switch (menu.getAction()) {
                 case Defs::MenuActionRestart:
                     level.restart();
@@ -160,7 +173,6 @@ void loop() {
                     setAppState(MainMenu);
                 break;
             }
-            menu.draw(&renderer, (Defs::ScreenW >> 1), 16);
         } break;
     }
     app.display();

@@ -14,15 +14,15 @@ class SpriteRenderer {
 #endif
     Rect clip;
     uint8_t* frameBuffer;
-    uint16_t frameStride;
+    uint8_t frameStride;
 
  public:
-    void initialize(uint8_t* fb, uint16_t fs);
+    void initialize(uint8_t* fb, uint8_t fs);
     void setClip(int16_t x, int16_t y, int16_t w, int16_t h);
     inline Rect& getClip() { return clip; }
     void drawLine(int16_t xStart, int16_t yStart,
                   int16_t xEnd, int16_t yEnd);
-    void putPixel(int16_t x, int16_t y);
+    void putPixel(uint8_t x, uint8_t y);
     void drawSpriteData(uint8_t* spriteData, int16_t targetX,
                         int16_t targetY, uint8_t width,
                         uint8_t height, uint8_t flags);
@@ -31,7 +31,7 @@ class SpriteRenderer {
                             uint8_t targetY, int8_t width,
                             int8_t height, uint8_t initialWidth,
                             uint8_t initialHeight, uint8_t flags);
-    void fastDrawVerticalPattern(uint8_t pattern, int16_t x, int16_t y);
+    void fastDrawVerticalPattern(uint8_t pattern, uint8_t x, uint8_t y);
     void updatePixelBatch(uint8_t* pix, uint8_t data, uint8_t mask) {
         *pix = ((data & mask) | (*pix & ~mask));
     }

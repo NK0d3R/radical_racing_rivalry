@@ -31,7 +31,7 @@ def main():
     for index, line in enumerate(data_lines):
         elements = line.split()
         if len(elements) < 2:
-            print("Skipping line %d" % (index))
+            print("Skipping line %d" % (index + 1))
             continue
         if elements[0] == "default":
             default_mapping = int(elements[-1])
@@ -46,7 +46,7 @@ def main():
                         min_char = chr_value
                     mapping[chr_value] = used_frame
                 else:
-                    print("Invalid char sequence at line %d" % (index))
+                    print("Invalid char sequence at line %d" % (index + 1))
 
     filename = os.path.basename(parse_data.output)
     basename = os.path.splitext(filename)[0]

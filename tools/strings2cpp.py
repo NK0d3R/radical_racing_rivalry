@@ -77,7 +77,7 @@ def main():
     parser.add_argument("-c", "--copyright", help="Copyright file",
                         default="", required=False)
     options = parser.parse_args()
-    matcher = re.compile(r"([a-zA-Z_-]*)\s+?[\"\'](.*?)[\"\']")
+    matcher = re.compile(r"([^0-9][a-zA-Z0-9_-]*)\s+?[\"\'](.*?)[\"\']")
     stringdata = []
     copyrightdata = None
     tab_str = " " * options.tabs   
@@ -100,12 +100,12 @@ def main():
             if line.startswith("#"):
                 continue
             result = matcher.match(line)
-            data = result.groups()
             if not result:
-                print("Warning: Invalid string at line %d" % (idx))
+                print("Warning: Invalid string at line %d" % (idx + 1))
                 continue
+            data = result.groups()
             if len(data[1]) == 0:
-                print("Warning: Empty string at line %d" % (idx))
+                print("Warning: Empty string at line %d" % (idx + 1))
                 continue
             if len(data[1]) > MAX_STRLEN:
                 raise Exception("String: %s too long (%d)" %
