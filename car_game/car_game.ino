@@ -1,4 +1,4 @@
-// Copyright 2018 Catalin G. Manciu
+ // Copyright 2018 Catalin G. Manciu
 
 #include "src/stdinc.h"
 #include "src/defs.h"
@@ -163,7 +163,6 @@ void loop() {
         } break;
         case AfterGameMenu: {
             menu.updateControls(buttonsState, oldButtonsState);
-            menu.draw(&renderer, (Defs::ScreenW >> 1), 16);
             switch (menu.getAction()) {
                 case Defs::MenuActionRestart:
                     level.restart();
@@ -173,6 +172,7 @@ void loop() {
                     setAppState(MainMenu);
                 break;
             }
+            menu.draw(&renderer, (Defs::ScreenW >> 1), 16);
         } break;
     }
     app.display();

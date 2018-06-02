@@ -39,6 +39,7 @@ class Level {
     uint8_t getGameMode() {
         return static_cast<uint8_t>(mode);
     }
+    Car* getPlayer() { return playerCar; }
 
  private:
     class BackgroundLayer {

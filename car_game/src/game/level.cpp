@@ -405,7 +405,6 @@ void Level::setEndRace(EndResultType type) {
         levelTimer = difference.getInt();
     }
     raceEnd();
-    setState(Result);
 }
 
 void Level::updateState(int16_t dt) {
@@ -424,7 +423,8 @@ void Level::updateState(int16_t dt) {
                 setEndRace(EndResultType::RaceEndTimeAttack + getGameMode());
                 break;
             }
-            if (getGameMode() == Duel && enemyCar->getX() >= Defs::RaceLength) {
+            if (getGameMode() == Duel && enemyCar->isAlive() &&
+                enemyCar->getX() >= Defs::RaceLength) {
                 setEndRace(EndResultType::RaceEndLose);
                 break;
             }
@@ -459,13 +459,23 @@ void Level::raceStart() {
 
 void Level::raceEnd() {
     foreachGameObject([&](GameObject* obj) { obj->onRaceEnd(); });
+    setState(Result);
 }
 
 void Level::updateGeneral(int16_t dt) {
     if (screenAnimType == Sprite) {
         screenAnim.update(dt);
     }
-    foreachGameObject([&](GameObject* obj) { obj->update(dt); });
+    int16_t modifDT = dt;
+    if (state == Result) {
+        int32_t hMaxStateCounter = (maxStateCounter >> 2);
+        if (stateCounter < hMaxStateCounter) {
+            int32_t diff = stateCounter;
+            modifDT = (dt / 8) + (7 * diff * diff * dt) /
+                    (hMaxStateCounter * hMaxStateCounter * 8);
+        }
+    }
+    foreachGameObject([&](GameObject* obj) { obj->update(modifDT); });
     updateCamera();
     foreachGameObject([&](GameObject* obj) { obj->updateScreenX(); });
     for (auto layer : bgLayers) {
@@ -515,11 +525,19 @@ uint8_t Level::worldToScreenY(const FP32& x, const FP32& y) {
 }
 
 void Level::updateCamera() {
+    bool targetCar = (state == Race) || (state == Result &&
+                     endResult <= PlayerDeadEngine);
     FP32 target = playerCar->getX();
-    if (state == Result && endResult > PlayerDeadEngine) {
-        target = Defs::RaceLength;
+    if (targetCar) {
+        target += FP32(1.5f) * (Defs::MaxCarSpeed - playerCar->getSpeed()) /
+                                Defs::MaxCarSpeed;
+        cameraPosition = target;
+    } else {
+        if (state == Result) {
+            target = Defs::RaceLength;
+        }
+        target += FP32(1.5f);
+        cameraPosition += target;
+        cameraPosition /= 2;
     }
-    target += FP32(1.5f);
-    cameraPosition += target;
-    cameraPosition /= 2;
 }

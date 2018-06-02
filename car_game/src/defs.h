@@ -145,6 +145,10 @@ struct Defs {
     static constexpr uint8_t ResultTextY = 26;
     static constexpr uint8_t RecordTextY = 38;
 
+    static constexpr uint8_t MaxOverheat = 30;
+    static constexpr uint16_t OverheatRPM = 7300;
+    static constexpr uint16_t OverheatDiv = 100;
+
     static const FP32 FPHalfScrW;
     static const FP32 MinRPM;
     static const FP32 MaxRPM;

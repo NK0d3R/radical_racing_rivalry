@@ -8,14 +8,14 @@
 
 // Torque (in Nm)
 constexpr int16_t kTorques[] PROGMEM = {
-    225,                // 1000 RPM
-    400,                // 2000 RPM
-    450,                // 3000 RPM
-    475,                // 4000 RPM
-    495,                // 5000 RPM
-    480,                // 6000 RPM
-    450,                // 7000 RPM
-    320                 // 8000 RPM
+    226,                // 1000 RPM
+    395,                // 2000 RPM
+    452,                // 3000 RPM
+    480,                // 4000 RPM
+    497,                // 5000 RPM
+    491,                // 6000 RPM
+    456,                // 7000 RPM
+    300                 // 8000 RPM
 };
 
 constexpr uint8_t kNbTorques = (sizeof(kTorques)/sizeof(FP32));
@@ -24,18 +24,18 @@ constexpr FP32 kGearRatios[] PROGMEM = {
     FP32(0.0f),
     FP32(9.13f),
     FP32(6.65f),
-    FP32(4.45f),
-    FP32(3.90f),
-    FP32(3.30f)
+    FP32(4.43f),
+    FP32(3.51f),
+    FP32(2.89f)
 };
 
-constexpr FP32 kWheelCircumference(2.0f * 3.141539f * 0.33f);
-constexpr FP32 kWheelRadius = FP32(0.33f);
-constexpr FP32 kVehicleMass = FP32(1600);
+constexpr FP32 kWheelCircumference(2.0f * 3.141539f * 0.303f);
+constexpr FP32 kWheelRadius = FP32(0.303f);
+constexpr FP32 kVehicleMass = FP32(1490);
 
-constexpr int16_t kWindResistanceMult = -32;
+constexpr int16_t kWindResistanceMult = -20;
 constexpr int16_t kWindResistanceDiv =  100;
-constexpr FP32 kWindResistanceConst(-1200);
+constexpr FP32 kWindResistanceConst(-360);
 
 FP32 RPM2Torque(FP32 rpm) {
     if (rpm > Defs::MaxRPM) {
@@ -161,9 +161,10 @@ void Car::updateEngine(int16_t dt) {
 
     if (alive) {
         int16_t engineRPMi = engineRPM.getInt();
-        if (engineRPMi > 7200) {
-            overheatCounter += (engineRPMi - 7000) / 200;
-            if (overheatCounter > 30) {
+        if (engineRPMi >= Defs::OverheatRPM) {
+            overheatCounter += 1 + (engineRPMi - Defs::OverheatRPM) /
+                               Defs::OverheatDiv;
+            if (overheatCounter > Defs::MaxOverheat) {
                 destroy();
             }
         } else {

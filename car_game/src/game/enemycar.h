@@ -4,6 +4,7 @@
 #define ENEMYCAR_H_
 
 #include "car.h"
+#include "level.h"
 
 class EnemyCar final : public Car {
  public:
@@ -13,8 +14,8 @@ class EnemyCar final : public Car {
     virtual void update(int16_t dt);
     virtual void onRaceStart();
  private:
+    static constexpr uint16_t GearChangeRPMStart = Defs::OverheatRPM - 300;
     int16_t stateTimer;
-    int16_t gearShiftRPM;
 
     enum AIState : uint8_t {
         Invalid,
