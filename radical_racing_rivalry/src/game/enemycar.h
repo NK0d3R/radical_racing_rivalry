@@ -13,6 +13,7 @@ class EnemyCar final : public Car {
     virtual void reset(const FP32& z);
     virtual void update(int16_t dt);
     virtual void onRaceStart();
+    virtual void onRaceEnd();
  private:
     static constexpr uint16_t GearChangeRPMStart = Defs::OverheatRPM - 300;
     int16_t stateTimer;

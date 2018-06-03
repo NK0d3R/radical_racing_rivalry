@@ -35,6 +35,7 @@ void EnemyCar::setState(AIState newState) {
 
 void EnemyCar::update(int16_t dt) {
     bool isAhead = parent->getPlayer()->getX() <= getX();
+    bool accelerate = false;
     switch (state) {
         case SwitchingGears: {
             stateTimer -= dt;
@@ -46,8 +47,11 @@ void EnemyCar::update(int16_t dt) {
             }
         } break;
         case Accelerating: {
-            if (getGear() == Defs::MaxGear) break;
-            uint8_t switchChance = 0;
+            if (getGear() == Defs::MaxGear) {
+                accelerate = overheatCounter < (Defs::MaxOverheat >> 2);
+                break;
+            }
+            uint16_t switchChance = 0;
             if (isAhead) {
                 uint16_t iRPM = getRPM().getInt();
                 if (iRPM > GearChangeRPMStart) {
@@ -59,15 +63,19 @@ void EnemyCar::update(int16_t dt) {
                 }
             } else {
                 if (overheatCounter > 0) {
-                    switchChance = overheatCounter * 85 / Defs::MaxOverheat;
+                    switchChance = (
+                        static_cast<uint16_t>(overheatCounter) * 130 /
+                        static_cast<uint16_t>(Defs::MaxOverheat));
                 }
             }
             if (switchChance > 0 && random(0, 100) < switchChance) {
                 setState(SwitchingGears);
+            } else {
+                accelerate = true;
             }
         } break;
     }
-    pedalToTheMetal(state == Accelerating);
+    pedalToTheMetal(accelerate);
     if (!alive) {
         setState(Dead);
     }
@@ -76,4 +84,8 @@ void EnemyCar::update(int16_t dt) {
 
 void EnemyCar::onRaceStart() {
     setState(SwitchingGears);
+}
+
+void EnemyCar::onRaceEnd() {
+    setState(Wait);
 }

@@ -9,7 +9,8 @@ const FP32 Defs::FPHalfScrW(Defs::ScreenW / 2);
 const FP32 Defs::MinRPM(1000);
 const FP32 Defs::MaxRPM(8000);
 const FP32 Defs::RaceLength(1800);
-const FP32 Defs::MaxCarSpeed((285.0f * 1000.0f) / 3600.0f);  // 250 km/h in m/s
+const FP32 Defs::MaxCarSpeed((288.0f * 1000.0f) / 3600.0f);  // 288 km/h in m/s
+const FP32 Defs::IdleRPMModif(16.0f);     // 16000 rot /s = 16 rot / msec
 
 void Utils::fastGetDigits(uint16_t value, char* dest, uint16_t nbDigits) {
     int16_t maxVal = 1;

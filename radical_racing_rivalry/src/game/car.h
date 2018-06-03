@@ -30,12 +30,12 @@ class Car : public GameObject {
     bool isAlive()                      { return alive; }
     int8_t getMaxGear()                 { return Defs::MaxGear; }
     void destroy();
-    int getOverheat()                   { return overheatCounter; }
+    int8_t getOverheat()               { return overheatCounter; }
 
  protected:
     int8_t gear;
     int8_t lastReflectionPos;
-    uint8_t overheatCounter;
+    int8_t overheatCounter;
     FP32 engineRPM;
     FP32 wheelsRPM;
     FP32 speed;

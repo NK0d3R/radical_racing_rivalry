@@ -13,9 +13,9 @@ constexpr int16_t kTorques[] PROGMEM = {
     452,                // 3000 RPM
     480,                // 4000 RPM
     497,                // 5000 RPM
-    491,                // 6000 RPM
-    456,                // 7000 RPM
-    300                 // 8000 RPM
+    505,                // 6000 RPM
+    508,                // 7000 RPM
+    510                 // 8000 RPM
 };
 
 constexpr uint8_t kNbTorques = (sizeof(kTorques)/sizeof(FP32));
@@ -33,9 +33,9 @@ constexpr FP32 kWheelCircumference(2.0f * 3.141539f * 0.303f);
 constexpr FP32 kWheelRadius = FP32(0.303f);
 constexpr FP32 kVehicleMass = FP32(1490);
 
-constexpr int16_t kWindResistanceMult = -20;
+constexpr int16_t kWindResistanceMult = -28;
 constexpr int16_t kWindResistanceDiv =  100;
-constexpr FP32 kWindResistanceConst(-360);
+constexpr FP32 kWindResistanceConst(-500);
 
 FP32 RPM2Torque(FP32 rpm) {
     if (rpm > Defs::MaxRPM) {
@@ -118,11 +118,7 @@ void Car::pedalToTheMetal(bool on) {
             throttle.clampUpper(maxThrottle);
         }
     } else {
-        FP32 minThrottle(0);
-        if (throttle > minThrottle) {
-            throttle -= FP32(0.1f);
-            throttle.clampLower(minThrottle);
-        }
+        throttle = 0;
     }
 }
 
@@ -130,25 +126,23 @@ void Car::updateEngine(int16_t dt) {
     bool engineConnected = engineIsConnected();
 
     FP32 forwardForce = 0;
-    FP32 targetEngineRPM = 0;
     FP32 engineTorque = 0;
     FP32 fpDT = FP32(dt);
 
     wheelsRPM = (speed * 60) / kWheelCircumference;
 
     if (engineConnected) {
-        targetEngineRPM = getGearRatio(gear) * wheelsRPM;
-        engineRPM = (targetEngineRPM + engineRPM) / 2;
+        engineRPM = getGearRatio(gear) * wheelsRPM;
         engineTorque = RPM2Torque(engineRPM.getInt());
         forwardForce = (throttle * engineTorque * getGearRatio(gear)) /
                         kWheelRadius;
     } else {
-        targetEngineRPM = (Defs::MinRPM) + (throttle * Defs::MaxRPM);
-        if (engineRPM < targetEngineRPM) {
-            engineRPM = (targetEngineRPM + engineRPM) / 2;
+        if (throttle > FP32(0)) {
+            engineRPM += (throttle * Defs::IdleRPMModif) * dt;
         } else {
-            engineRPM = (targetEngineRPM + engineRPM * 4) / 5;
+            engineRPM -= Defs::IdleRPMModif * dt;
         }
+        engineRPM.clamp(Defs::MinRPM, Defs::MaxRPM);
     }
 
     forwardForce += kWindResistanceConst +
@@ -157,20 +151,27 @@ void Car::updateEngine(int16_t dt) {
     FP32 accel = forwardForce / kVehicleMass;
     speed += (accel * fpDT) / 1000;
     speed.clampLower(FP32(0));
-    xPos += (speed * fpDT) / 1000;
 
     if (alive) {
         int16_t engineRPMi = engineRPM.getInt();
         if (engineRPMi >= Defs::OverheatRPM) {
-            overheatCounter += 1 + (engineRPMi - Defs::OverheatRPM) /
-                               Defs::OverheatDiv;
+            uint8_t baseOverheat = 1 + (gear >> 1);
+            uint8_t overheatIncrease = baseOverheat +
+                                       (engineRPMi - Defs::OverheatRPM) /
+                                       Defs::OverheatDiv;
+            if (throttle < FP32(1.0f)) {
+                overheatIncrease >>= 1;
+            }
+            overheatCounter += overheatIncrease;
             if (overheatCounter > Defs::MaxOverheat) {
                 destroy();
             }
         } else {
-            overheatCounter = 0;
+            overheatCounter >>= 1;
         }
     }
+
+    xPos += (speed * fpDT) / 1000;
 }
 
 void Car::updateWheelsAnim(int16_t dt) {

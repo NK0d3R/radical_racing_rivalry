@@ -1,7 +1,7 @@
 Igm_Restart         "Restart"
 Igm_BackToMM        "Main Menu"
 Dead_Gearbox        "Gearbox busted!"
-Dead_Engine         "Engine busted!"
+Dead_Engine         "Engine blown!"
 Duel_Lost           "You lost!"
 TimeAttack_Over     "Sprint complete!"
 Duel_Won            "You won!"

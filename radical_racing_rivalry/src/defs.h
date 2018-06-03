@@ -85,8 +85,8 @@ struct Defs {
         HUDFrameRPM = 0,
         HUDFrameRPMBar,
         HUDFrameKPH,
-        HUDFrameMPH,
-        HUDFrameWarning
+        HUDFrameWarning,
+        HUDFrameWarningOver
     };
 
     // AnimCarGearsManual frames
@@ -130,6 +130,7 @@ struct Defs {
 
     static constexpr uint8_t RPMBarLength = 32;
     static constexpr uint8_t CarSpeedFontW = 5;
+    static constexpr uint8_t WarningSignH = 9;
 
     static constexpr uint8_t MainFontHeight = 7;
     static constexpr uint8_t MainFontSpaceW = 4;
@@ -145,7 +146,7 @@ struct Defs {
     static constexpr uint8_t ResultTextY = 26;
     static constexpr uint8_t RecordTextY = 38;
 
-    static constexpr uint8_t MaxOverheat = 30;
+    static constexpr uint8_t MaxOverheat = 36;
     static constexpr uint16_t OverheatRPM = 7300;
     static constexpr uint16_t OverheatDiv = 100;
 
@@ -154,6 +155,7 @@ struct Defs {
     static const FP32 MaxRPM;
     static const FP32 RaceLength;
     static const FP32 MaxCarSpeed;
+    static const FP32 IdleRPMModif;
 };
 
 struct Utils {
