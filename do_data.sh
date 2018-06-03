@@ -1,5 +1,5 @@
 echo --- GFX ---
-PROJECT_FOLDER=car_game
+PROJECT_FOLDER=radical_racing_rivalry
 RES_FOLDER=$PROJECT_FOLDER/src/res
 GFX_FOLDER=gfx
 STRINGS_FOLDER=strings

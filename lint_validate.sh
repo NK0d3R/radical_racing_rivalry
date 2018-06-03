@@ -1,5 +1,5 @@
 echo Checking source files
-PROJECT_FOLDER=car_game
+PROJECT_FOLDER=radical_racing_rivalry
 PROJECT_SRC_FOLDER=$PROJECT_FOLDER/src
 TOOLS_FOLDER=tools
 GOOGLE_LINT=$TOOLS_FOLDER/third-party/cpplint/cpplint.py
