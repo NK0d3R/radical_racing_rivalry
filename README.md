@@ -1,4 +1,4 @@
-# Radical Racing: Rivalry v1.0.0
+# Radical Racing: Rivalry v1.0.1
 Not a ripoff, but a retro *tribute* to the Atari™ classic, Dragster™.
 
 ### Synopsis
