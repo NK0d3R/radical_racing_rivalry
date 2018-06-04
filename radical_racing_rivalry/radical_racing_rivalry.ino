@@ -48,17 +48,17 @@ static constexpr uint32_t signature = (static_cast<uint32_t>('N') << 24) |
                                        saveVersion;
 
 void saveSave() {
-    EEPROM.put(0, signature);
-    EEPROM.put(sizeof(signature), bestTimes);
+    EEPROM.put(EEPROM_STORAGE_SPACE_START, signature);
+    EEPROM.put(EEPROM_STORAGE_SPACE_START + sizeof(signature), bestTimes);
 }
 
 void saveLoad() {
     uint32_t sign;
-    EEPROM.get(0, sign);
+    EEPROM.get(EEPROM_STORAGE_SPACE_START, sign);
     if(sign != signature) {
         saveSave();
     } else {
-        EEPROM.get(sizeof(signature), bestTimes);
+        EEPROM.get(EEPROM_STORAGE_SPACE_START + sizeof(signature), bestTimes);
     }
 }
 
