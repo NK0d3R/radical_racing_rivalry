@@ -9,8 +9,8 @@ void EnemyCar::reset(const FP32& z) {
 }
 
 static constexpr uint8_t kGearSwitchingTimes[] PROGMEM = {
-    40, 70,       // Auto gear mode (in centisecs)
-    55, 85        // Manual gear mode (in centisecs)
+    25, 60,       // Auto gear mode (in centisecs)
+    50, 75        // Manual gear mode (in centisecs)
 };
 
 void EnemyCar::setState(AIState newState) {
@@ -40,7 +40,7 @@ void EnemyCar::update(int16_t dt) {
         case SwitchingGears: {
             stateTimer -= dt;
             if (!isAhead) {
-                stateTimer -= dt;
+                stateTimer -= (dt >> 1);  // Faster reaction when behind
             }
             if (stateTimer <= 0) {
                 setState(Accelerating);
@@ -56,7 +56,7 @@ void EnemyCar::update(int16_t dt) {
                 uint16_t iRPM = getRPM().getInt();
                 if (iRPM > GearChangeRPMStart) {
                     if (iRPM < Defs::OverheatRPM) {
-                        switchChance = (iRPM - GearChangeRPMStart) / 6;
+                        switchChance = (iRPM - GearChangeRPMStart) / 4;
                     } else {
                         switchChance = 50 + (iRPM - Defs::OverheatRPM) / 2;
                     }
@@ -64,7 +64,7 @@ void EnemyCar::update(int16_t dt) {
             } else {
                 if (overheatCounter > 0) {
                     switchChance = (
-                        static_cast<uint16_t>(overheatCounter) * 130 /
+                        static_cast<uint16_t>(overheatCounter) * 120 /
                         static_cast<uint16_t>(Defs::MaxOverheat));
                 }
             }

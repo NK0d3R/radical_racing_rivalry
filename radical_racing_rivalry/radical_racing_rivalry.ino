@@ -1,4 +1,4 @@
- // Copyright 2018 Catalin G. Manciu
+// Copyright 2018 Catalin G. Manciu
 
 #include "src/stdinc.h"
 #include "src/defs.h"
@@ -27,8 +27,8 @@ AppState appState = Invalid;
 int32_t bestTimes[4] = {
     60000,
     70000,
-    -1000,
-     -800
+      -20,
+      -10
 };
 
 

@@ -15,7 +15,7 @@ class EnemyCar final : public Car {
     virtual void onRaceStart();
     virtual void onRaceEnd();
  private:
-    static constexpr uint16_t GearChangeRPMStart = Defs::OverheatRPM - 300;
+    static constexpr uint16_t GearChangeRPMStart = Defs::OverheatRPM - 200;
     int16_t stateTimer;
 
     enum AIState : uint8_t {

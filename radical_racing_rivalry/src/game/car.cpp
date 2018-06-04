@@ -12,10 +12,10 @@ constexpr int16_t kTorques[] PROGMEM = {
     395,                // 2000 RPM
     452,                // 3000 RPM
     480,                // 4000 RPM
-    497,                // 5000 RPM
-    505,                // 6000 RPM
-    508,                // 7000 RPM
-    510                 // 8000 RPM
+    500,                // 5000 RPM
+    520,                // 6000 RPM
+    550,                // 7000 RPM
+    580                 // 8000 RPM
 };
 
 constexpr uint8_t kNbTorques = (sizeof(kTorques)/sizeof(FP32));
@@ -33,9 +33,9 @@ constexpr FP32 kWheelCircumference(2.0f * 3.141539f * 0.303f);
 constexpr FP32 kWheelRadius = FP32(0.303f);
 constexpr FP32 kVehicleMass = FP32(1490);
 
-constexpr int16_t kWindResistanceMult = -28;
+constexpr int16_t kWindResistanceMult = -26;
 constexpr int16_t kWindResistanceDiv =  100;
-constexpr FP32 kWindResistanceConst(-500);
+constexpr FP32 kWindResistanceConst(-600);
 
 FP32 RPM2Torque(FP32 rpm) {
     if (rpm > Defs::MaxRPM) {
@@ -153,21 +153,31 @@ void Car::updateEngine(int16_t dt) {
     speed.clampLower(FP32(0));
 
     if (alive) {
-        int16_t engineRPMi = engineRPM.getInt();
-        if (engineRPMi >= Defs::OverheatRPM) {
-            uint8_t baseOverheat = 1 + (gear >> 1);
-            uint8_t overheatIncrease = baseOverheat +
-                                       (engineRPMi - Defs::OverheatRPM) /
-                                       Defs::OverheatDiv;
-            if (throttle < FP32(1.0f)) {
-                overheatIncrease >>= 1;
-            }
-            overheatCounter += overheatIncrease;
-            if (overheatCounter > Defs::MaxOverheat) {
-                destroy();
-            }
+        if (engineRPM > Defs::MaxRPM) {
+            destroy();
         } else {
-            overheatCounter >>= 1;
+            int16_t engineRPMi = engineRPM.getInt();
+            uint8_t baseOverheat = 1 + (gear >> 1);
+            if (throttle > 0 && engineRPMi >= Defs::OverheatRPM) {
+                uint8_t overheatIncrease = baseOverheat +
+                                        (engineRPMi - Defs::OverheatRPM) /
+                                        Defs::OverheatDiv;
+                overheatCounter += overheatIncrease;
+                if (overheatCounter > Defs::MaxOverheat) {
+                    destroy();
+                }
+            } else {
+                if (engineRPMi < Defs::OverheatRPM) {
+                    overheatCounter = 0;
+                } else {
+                    uint8_t coolingSpeed = 4 - baseOverheat;
+                    if (overheatCounter >= (coolingSpeed + 1)) {
+                        overheatCounter -= coolingSpeed;
+                    } else {
+                        overheatCounter = 1;  // don't go to 0 while RPM is high
+                    }
+                }
+            }
         }
     }
 

@@ -188,7 +188,7 @@ void Level::setState(LevelState newState) {
             case Result:
                 stateCounter = 0;
                 if (endResult < RaceEndLose) {
-                    startScreenAnim(120, 62,
+                    startScreenAnim(120, 68,
                                     Sprite, Defs::AnimCarExplosion);
                     maxStateCounter = 120;
                 } else {
@@ -249,7 +249,7 @@ void Level::drawCarHUD(SpriteRenderer* renderer, uint8_t x, uint8_t y) {
                                     renderer, Defs::AnimCarRPMHud,
                                     Defs::HUDFrameRPM, x, y, 0);
 // Draw speed
-    static constexpr uint8_t kNbDigitsSpeed = 4;
+    static constexpr uint8_t kNbDigitsSpeed = 3;
     uint8_t crtX = x + 23;
     uint8_t crtY = y - 5;
     int32_t speed = Utils::mpsToKph(playerCar->getSpeed()).getInt();
@@ -321,13 +321,13 @@ void Level::drawResult(SpriteRenderer* renderer, uint8_t x, uint8_t y) {
                                     y,
                                     ANCHOR_VCENTER | ANCHOR_HCENTER);
     y += 12;
-    if (newRecord) {
-        Utils::drawBlinkingText(renderer, Strings::NewRecord, x, y);
-        y += 8;
-    }
     if (endResult > PlayerDeadEngine) {
         drawTimer(renderer, x, y, ANCHOR_TOP | ANCHOR_HCENTER,
                   getGameMode() == Duel);
+    }
+    if (newRecord) {
+        y += 12;
+        Utils::drawBlinkingText(renderer, Strings::NewRecord, x, y);
     }
 }
 
@@ -422,18 +422,28 @@ void Level::updateState(int16_t dt) {
                 raceStart();
             }
         break;
-        case Race:
+        case Race: {
             if (!playerCar->isAlive()) {
                 setEndRace(EndResultType::PlayerDeadEngine);
                 break;
             }
-            if (playerCar->getX() >= Defs::RaceLength) {
+            bool playerFinished = playerCar->getX() >= Defs::RaceLength;
+            bool enemyFinished = getGameMode() == Duel && enemyCar->isAlive()
+                                 && enemyCar->getX() >= Defs::RaceLength;
+            if (playerFinished && !enemyFinished) {
                 setEndRace(EndResultType::RaceEndTimeAttack + getGameMode());
                 break;
-            }
-            if (getGameMode() == Duel && enemyCar->isAlive() &&
-                enemyCar->getX() >= Defs::RaceLength) {
+            } else if (!playerFinished && enemyFinished) {
                 setEndRace(EndResultType::RaceEndLose);
+                break;
+            } else if (playerFinished && enemyFinished) {
+                // edge case: both pass finish line on the same frame
+                if (playerCar->getX() >= enemyCar->getX()) {
+                    setEndRace(
+                        EndResultType::RaceEndTimeAttack + getGameMode());
+                } else {
+                    setEndRace(EndResultType::RaceEndLose);
+                }
                 break;
             }
             if (playerCar->isClutched()) {
@@ -446,7 +456,7 @@ void Level::updateState(int16_t dt) {
             if (levelTimer > 5940000) {     // limit it at 99 min
                 levelTimer = 5940000;
             }
-        break;
+        } break;
         case Result:
             if (screenAnimType == Sprite && screenAnim.animPlaying() == false) {
                 screenAnimType = None;
